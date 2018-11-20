@@ -18,9 +18,7 @@ These settings get overwritten per VSCode window load.
 
 Workspaces containing multiple root folders are not currently supported by this extension.  The current behavior for multi-folder workspaces is that the workspace color settings will be set by the first window opened, and can be saved in the workspace's .code-workspace configuration file.
 
-When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.
-
-This is normal:
+When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
 ![screenshot](https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true)
 

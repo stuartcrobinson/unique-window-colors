@@ -27,4 +27,4 @@ When opening new VSCode windows, you might see the relevant theme colors change 
 <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true" alt="drawing" width="200"/>
 
 <br><br>
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/largeExample.jpg" alt="drawing" width="600"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/liveExample.png" alt="drawing" width="600"/>

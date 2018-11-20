@@ -2,13 +2,13 @@
 
 Uniquely and automatically colors each VSCode window.
 
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/darkExample.png" alt="drawing" width="200"/> &nbsp;&nbsp;&nbsp;
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/lightExample.png" alt="drawing" width="200"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/screenshots/darkExample.png" alt="drawing" width="200"/> &nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/screenshots/lightExample.png" alt="drawing" width="200"/>
 
 
 See settings for `Window Colors: Theme` to match Dark vs Light themes.
 
-<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/settings.png?raw=true" alt="drawing" width="300"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/screenshots/settings.png" alt="drawing" width="300"/>
 
 
 
@@ -24,9 +24,9 @@ Workspaces containing multiple root folders are not currently supported by this 
 
 When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
-<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true" alt="drawing" width="200"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/screenshots/colorflicker.gif" alt="drawing" width="200"/>
 <br><br>
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/liveExample.png" alt="drawing" width="600"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/screenshots/liveExample.png" alt="drawing" width="600"/>
 
 ## Removal
 

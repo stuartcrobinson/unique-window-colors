@@ -39,9 +39,9 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "Unique Window Colors Configuration",
+      "title": "Window Colors Configuration",
       "properties": {
-        "uniqueWindowColors.theme": {
+        "windowColors.theme": {
           "type": "string",
           "default": "dark",
           "enum": [

@@ -1,4 +1,4 @@
-# Unique Window Colors
+# Window Colors
 
 Uniquely and automatically colors each VSCode window.
 
@@ -18,17 +18,9 @@ Workspaces containing multiple root folders are not currently supported by this 
 
 When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
-<!-- ![screenshot](https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true) -->
-
-
-
 <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true" alt="drawing" width="200"/>
-
-
 <br><br>
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/liveExample.png" alt="drawing" width="600"/>
-
-
 
 ## Removal
 
@@ -42,3 +34,10 @@ After disabling or uninstalling this extension, removing these settings will ret
       "titleBar.activeForeground": "#..."
     }
 ```
+
+
+## Credits
+
+Hashing and color generation functions adapted from https://www.designedbyaturtle.co.uk/convert-string-to-hexidecimal-colour-with-javascript-vanilla/ by Edd Turtle.
+
+Workspace root folder detection function adapted from https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82 by Van Huynh.

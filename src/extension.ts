@@ -12,7 +12,7 @@ export function activate(context: ExtensionContext) {
   workspaceRoot = workspaceRoot;
 
   let sideBarColor: Color = Color('#' + stringToARGB(workspaceRoot));
-  const theme = vscode.workspace.getConfiguration('uniqueWindowColors').get<string>('theme');
+  const theme = vscode.workspace.getConfiguration('windowColors').get<string>('theme');
 
   let textColor: Color = Color('#ffffff');
   let titleBarColor: Color = Color('#ffffff');
@@ -64,6 +64,7 @@ export function activate(context: ExtensionContext) {
 
 }
 
+//https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82
 // takes an array of workspace folder objects and return
 // workspace root, assumed to be the first item in the array
 export const getWorkspaceFolder = (folders: WorkspaceFolder[] |
@@ -78,10 +79,11 @@ export const getWorkspaceFolder = (folders: WorkspaceFolder[] |
   return uri.fsPath;
 };
 
-// https://github.com/zenozeng/color-hash
+function stringToARGB(str: string) {
+  return intToARGB(hashCode(str));
+}
+
 // https://www.designedbyaturtle.co.uk/convert-string-to-hexidecimal-colour-with-javascript-vanilla/
-
-
 // Hash any string into an integer value
 // Then we'll use the int and convert to hex.
 function hashCode(str: string) {
@@ -92,6 +94,7 @@ function hashCode(str: string) {
   return hash;
 }
 
+// https://www.designedbyaturtle.co.uk/convert-string-to-hexidecimal-colour-with-javascript-vanilla/
 // Convert an int to hexadecimal with a max length
 // of six characters.
 function intToARGB(i: number) {
@@ -104,8 +107,4 @@ function intToARGB(i: number) {
   // the length is greater than six.
   hex += '000000';
   return hex.substring(0, 6);
-}
-
-function stringToARGB(str: string) {
-  return intToARGB(hashCode(str));
 }

@@ -1,69 +1,65 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the necessary extensibility types to use in your code below
 import * as Color from 'color';
-import * as vscode from 'vscode';
 import { ExtensionContext, workspace, WorkspaceFolder } from 'vscode';
 
-// This method is called when your extension is activated. Activation is
-// controlled by the activation events defined in package.json.
 export function activate(context: ExtensionContext) {
   let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+  const extensionTheme = workspace.getConfiguration('windowColors').get<string>('theme');
 
-  workspaceRoot = workspaceRoot;
+  /** retain initial unrelated colorCustomizations*/
+  const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations')));
 
   let sideBarColor: Color = Color('#' + stringToARGB(workspaceRoot));
-  const theme = vscode.workspace.getConfiguration('windowColors').get<string>('theme');
-
-  let textColor: Color = Color('#ffffff');
+  let titleBarTextColor: Color = Color('#ffffff');
   let titleBarColor: Color = Color('#ffffff');
 
-  if (theme === 'dark') {
+  if (extensionTheme === 'dark') {
 
-    while (sideBarColor.luminosity() > 0.027) {
-      sideBarColor = sideBarColor.darken(0.01);
-    }
-    while (sideBarColor.luminosity() < 0.02) {
-      sideBarColor = sideBarColor.lighten(0.01);
-    }
-    textColor = Color(sideBarColor.hex());
-    while (textColor.luminosity() < 0.95) {
-      textColor = textColor.lighten(0.01);
-    }
+    sideBarColor = getColorWithLuminosity(sideBarColor, .02, .027);
+    titleBarTextColor = getColorWithLuminosity(sideBarColor, 0.95, 1);
     titleBarColor = sideBarColor.lighten(0.3);
   }
-  else if (theme === 'light') {
+  else if (extensionTheme === 'light') {
 
-    while (sideBarColor.luminosity() < 0.55) {
-      sideBarColor = sideBarColor.lighten(0.01);
-    }
-    while (sideBarColor.luminosity() > 0.45) {
-      sideBarColor = sideBarColor.darken(0.01);
-    }
-    textColor = Color(sideBarColor.hex());
-    while (textColor.luminosity() > 0.01) {
-      textColor = textColor.darken(0.01);
-    }
+    sideBarColor = getColorWithLuminosity(sideBarColor, 0.45, 0.55)
+    titleBarTextColor = getColorWithLuminosity(sideBarColor, 0, 0.01)
     titleBarColor = sideBarColor.lighten(0.1);
   }
 
-  const doRevert = theme === 'revert';
+  const doRevertColors = extensionTheme === 'revert';
 
-  // console.log("workspace.getConfiguration('workbench').get('colorCustomizations')");
-  // console.log(workspace.getConfiguration('workbench').get('colorCustomizations'));
-  // console.log(workspace.getConfiguration('workbench').get('colorCustomizations').activityBar.background);
+  let doUpdateColors = true;
 
-  workspace
-    .getConfiguration('workbench')
-    .update('colorCustomizations', {
-      "activityBar.background": doRevert ? undefined : sideBarColor.hex(),
-      "titleBar.activeBackground": doRevert ? undefined : titleBarColor.hex(),
-      "titleBar.activeForeground": doRevert ? undefined : textColor.hex(),
+  if (cc && (cc['activityBar.background'] || cc['titleBar.activeBackground'] || cc['titleBar.activeForeground'])) {
+    //don't overwrite
+    doUpdateColors = false;
+  }
+
+  if (doUpdateColors || doRevertColors) {
+
+    const newColors = {
+      "activityBar.background": doRevertColors ? undefined : sideBarColor.hex(),
+      "titleBar.activeBackground": doRevertColors ? undefined : titleBarColor.hex(),
+      "titleBar.activeForeground": doRevertColors ? undefined : titleBarTextColor.hex(),
       //these lines are for demoing since the extension demo doesn't show the formatted title bar
       // "sideBarSectionHeader.background": titleBarColor.hex(),
-      // "sideBarSectionHeader.foreground": textColor.hex()
-    }, false);
+      // "sideBarSectionHeader.foreground": titleBarTextColor.hex()
+    };
+    workspace.getConfiguration('workbench').update('colorCustomizations', { ...cc, ...newColors }, false);
+  }
 }
 
+const getColorWithLuminosity = (color: Color, min: number, max: number): Color => {
+
+  let c: Color = Color(color.hex());
+
+  while (c.luminosity() > max) {
+    c = c.darken(0.01);
+  }
+  while (c.luminosity() < min) {
+    c = c.lighten(0.01);
+  }
+  return c;
+}
 
 //https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82
 // takes an array of workspace folder objects and return
@@ -109,3 +105,6 @@ function intToARGB(i: number) {
   hex += '000000';
   return hex.substring(0, 6);
 }
+
+
+// https://stackoverflow.com/questions/45218663/use-workbench-colorcustomizations-in-extension

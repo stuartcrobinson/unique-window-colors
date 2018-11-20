@@ -6,7 +6,7 @@ Uniquely and automatically colors each VSCode window.
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/lightExample.png" alt="drawing" width="200"/>
 
 
-See settings for `"Unique `Window Colors: Theme` to match Dark vs Light themes.
+See settings for `Window Colors: Theme` to match Dark vs Light themes.
 
 <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/settings.png?raw=true" alt="drawing" width="300"/>
 

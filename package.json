@@ -16,8 +16,16 @@
     "url": "https://github.com/stuartcrobinson/unique-window-colors"
   },
   "categories": [
-    "Other"
+      "Other",
+      "Themes"
   ],
+  "keywords": [
+      "color",
+      "theme",
+      "workspace",
+      "folder",
+      "customization"
+],
   "activationEvents": [
     "*"
   ],

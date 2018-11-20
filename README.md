@@ -20,7 +20,11 @@ Workspaces containing multiple root folders are not currently supported by this 
 
 When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
-![screenshot](https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true)
+<!-- ![screenshot](https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true) -->
 
 
+
+<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/colorflicker.gif?raw=true" alt="drawing" width="200"/>
+
+<br><br>
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/largeExample.jpg" alt="drawing" width="600"/>

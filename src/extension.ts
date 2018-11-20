@@ -1,12 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the necessary extensibility types to use in your code below
-import { workspace, WorkspaceFolder, ExtensionContext } from 'vscode';
-
-import * as vscode from 'vscode';
-
 import * as Color from 'color';
-
-// var Color = require('color');
+import * as vscode from 'vscode';
+import { ExtensionContext, workspace, WorkspaceFolder } from 'vscode';
 
 // This method is called when your extension is activated. Activation is
 // controlled by the activation events defined in package.json.
@@ -16,16 +12,6 @@ export function activate(context: ExtensionContext) {
   workspaceRoot = workspaceRoot;
 
   let sideBarColor: Color = Color('#' + stringToARGB(workspaceRoot));
-
-  // color.red()
-  console.log(`color.red():    ${sideBarColor.red()}`);
-
-  //make it less red
-  sideBarColor = sideBarColor.red(Math.max(sideBarColor.red(), 0));
-
-  // sideBarColor = sideBarColor.desaturate(0.5);
-
-  console.log(sideBarColor.luminosity());
   const theme = vscode.workspace.getConfiguration('uniqueWindowColors').get<string>('theme');
 
   let textColor: Color = Color('#ffffff');
@@ -35,7 +21,6 @@ export function activate(context: ExtensionContext) {
 
     while (sideBarColor.luminosity() > 0.027) {
       sideBarColor = sideBarColor.darken(0.01);
-      // console.log(sideBarColor.luminosity());
     }
     while (sideBarColor.luminosity() < 0.02) {
       sideBarColor = sideBarColor.lighten(0.01);
@@ -50,7 +35,6 @@ export function activate(context: ExtensionContext) {
 
     while (sideBarColor.luminosity() < 0.55) {
       sideBarColor = sideBarColor.lighten(0.01);
-      // console.log(sideBarColor.luminosity());
     }
     while (sideBarColor.luminosity() > 0.45) {
       sideBarColor = sideBarColor.darken(0.01);
@@ -62,11 +46,6 @@ export function activate(context: ExtensionContext) {
     titleBarColor = sideBarColor.lighten(0.1);
   }
 
-  console.log(`sidebar:       ${sideBarColor.luminosity()}`);
-  console.log(`titleBarColor: ${titleBarColor.luminosity()}`);
-  console.log(`textColor:     ${textColor.luminosity()}`);
-  console.log(`theme:         ${theme}`);
-
   if (theme !== 'disable') {
 
     const doRevert = theme === 'revert';
@@ -77,6 +56,7 @@ export function activate(context: ExtensionContext) {
         "activityBar.background": doRevert ? undefined : sideBarColor.hex(),
         "titleBar.activeBackground": doRevert ? undefined : titleBarColor.hex(),
         "titleBar.activeForeground": doRevert ? undefined : textColor.hex(),
+        //these lines are for demoing since the extension demo doesn't show the formatted title bar
         // "sideBarSectionHeader.background": titleBarColor.hex(),
         // "sideBarSectionHeader.foreground": textColor.hex()
       }, false);
@@ -129,11 +109,3 @@ function intToARGB(i: number) {
 function stringToARGB(str: string) {
   return intToARGB(hashCode(str));
 }
-
-
-//  const initCol = workspace.getConfiguration('workbench').get('colorCustomizations');
-// https://github.com/zenozeng/color-hash
-// https://www.designedbyaturtle.co.uk/demos/hex-colour/
-// https://github.com/jfsiii/chromath
-// pick contrasting color:
-// https://trendct.org/2016/01/22/how-to-choose-a-label-color-to-contrast-with-background/

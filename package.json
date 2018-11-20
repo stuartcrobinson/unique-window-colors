@@ -3,7 +3,7 @@
   "displayName": "Unique Window Colors",
   "description": "Adds a unique color to each window's activityBar and titleBar.",
   "icon": "icon.png",
-  "version": "0.17.11",
+  "version": "0.17.12",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"
@@ -16,16 +16,16 @@
     "url": "https://github.com/stuartcrobinson/unique-window-colors"
   },
   "categories": [
-      "Other",
-      "Themes"
+    "Other",
+    "Themes"
   ],
   "keywords": [
-      "color",
-      "theme",
-      "workspace",
-      "folder",
-      "customization"
-],
+    "color",
+    "theme",
+    "workspace",
+    "folder",
+    "customization"
+  ],
   "activationEvents": [
     "*"
   ],

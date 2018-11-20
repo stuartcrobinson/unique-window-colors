@@ -46,23 +46,20 @@ export function activate(context: ExtensionContext) {
     titleBarColor = sideBarColor.lighten(0.1);
   }
 
-  if (theme !== 'disable') {
+  const doRevert = theme === 'revert';
 
-    const doRevert = theme === 'revert';
-
-    workspace
-      .getConfiguration('workbench')
-      .update('colorCustomizations', {
-        "activityBar.background": doRevert ? undefined : sideBarColor.hex(),
-        "titleBar.activeBackground": doRevert ? undefined : titleBarColor.hex(),
-        "titleBar.activeForeground": doRevert ? undefined : textColor.hex(),
-        //these lines are for demoing since the extension demo doesn't show the formatted title bar
-        // "sideBarSectionHeader.background": titleBarColor.hex(),
-        // "sideBarSectionHeader.foreground": textColor.hex()
-      }, false);
-  }
-
+  workspace
+    .getConfiguration('workbench')
+    .update('colorCustomizations', {
+      "activityBar.background": doRevert ? undefined : sideBarColor.hex(),
+      "titleBar.activeBackground": doRevert ? undefined : titleBarColor.hex(),
+      "titleBar.activeForeground": doRevert ? undefined : textColor.hex(),
+      //these lines are for demoing since the extension demo doesn't show the formatted title bar
+      // "sideBarSectionHeader.background": titleBarColor.hex(),
+      // "sideBarSectionHeader.foreground": textColor.hex()
+    }, false);
 }
+
 
 //https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82
 // takes an array of workspace folder objects and return

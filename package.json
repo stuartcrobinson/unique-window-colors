@@ -47,14 +47,12 @@
           "enum": [
             "dark",
             "light",
-            "revert",
-            "disable"
+            "revert"
           ],
           "enumDescriptions": [
-            "Applies a random dark-themed color to the activityBar and titleBar.",
-            "Applies a random light-themed color to the activityBar and titleBar.",
-            "Reverts activityBar and titleBar colors to the default theme color.",
-            "Deactivates this extension for the given scope.  Allows for setting custom colors in .vscode/settings.json"
+            "Applies a dark-themed color to the activityBar and titleBar.",
+            "Applies a light-themed color to the activityBar and titleBar.",
+            "Reverts activityBar and titleBar colors to the default theme color."
           ],
           "description": "Controls the color shades to blend with dark or light themes."
         }

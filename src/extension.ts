@@ -48,6 +48,10 @@ export function activate(context: ExtensionContext) {
 
   const doRevert = theme === 'revert';
 
+  // console.log("workspace.getConfiguration('workbench').get('colorCustomizations')");
+  // console.log(workspace.getConfiguration('workbench').get('colorCustomizations'));
+  // console.log(workspace.getConfiguration('workbench').get('colorCustomizations').activityBar.background);
+
   workspace
     .getConfiguration('workbench')
     .update('colorCustomizations', {

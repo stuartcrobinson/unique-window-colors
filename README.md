@@ -16,20 +16,19 @@ Uniquely and automatically colors each VSCode window.
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_dark_screenshot.png" alt="drawing" width="330"/> &nbsp;&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_light_screenshot.png" alt="drawing" width="330"/>
 
+## Usage with Git
 
-See settings for `Window Colors: Theme` to match Dark vs Light themes.
+This extension modifies a workspace's colors by writing them to `.vscode/settings.json`.
 
-<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/>
-
-
+To avoid checking this file in to your remote repository without modifying `.gitignore`, add `.vscode/settings.json` to your project's `.git/info/exclude` file.
 
 ## How it works
 
 When you open a folder in a new VSCode window, this extension picks some colors based on a hash of that folder's name.
 
-Those colors are then saved in `.vscode/settings.json`.  You might want to add `.vscode` to `.gitignore`.  
+Those colors are then written to `.vscode/settings.json`, and this file is generated if it doens't already exist.
 
-If you don't like the colors picked by this extension, you can change them in `.vscode/settings.json`.  They don't get overwritten, so you have to either manually delete them, or select `revert` in the extension `Window Colors: Theme` settings and reload first in order to switch between `light` and `dark`.
+If you don't like the colors picked by this extension, you can change them there.  They don't get overwritten, so you have to either manually delete them, or select `revert` in the extension `Window Colors: Theme` settings and reload first in order to switch between `light` and `dark`.
 
 Workspaces containing multiple root folders are not currently supported by this extension.  The current behavior for multi-folder workspaces is that the workspace color settings will be set by the first window opened, and can be saved in the workspace's `<workspace-name>.code-workspace` configuration file.
 
@@ -38,6 +37,12 @@ When opening new VSCode windows, you might see the relevant theme colors change 
 <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/colorflicker.gif?raw=true" alt="drawing" width="200"/>
 <!-- <br><br>
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/liveExample.png" alt="drawing" width="600"/> -->
+
+## Settings
+
+See settings for `Window Colors: Theme` to match Dark vs Light themes.
+
+<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/>
 
 ## Removal
 

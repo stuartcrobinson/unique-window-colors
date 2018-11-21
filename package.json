@@ -2,7 +2,7 @@
   "name": "unique-window-colors",
   "displayName": "Window Colors",
   "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
-  "icon": "icon.png",
+  "icon": "icon_406.png",
   "version": "0.17.19",
   "publisher": "stuart",
   "author": {

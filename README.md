@@ -1,6 +1,6 @@
-<img align="left" width="60" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_406.png">
+<img align="left" width="50" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_406.png">
 
-#    Window Colors
+# Window Colors
 
 
 
@@ -12,7 +12,7 @@
 
 <br><br><br> -->
 
----
+<!-- --- -->
 
 <!-- 
 <div>

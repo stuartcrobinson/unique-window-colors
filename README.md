@@ -1,4 +1,4 @@
-<div>
+<!-- <div>
   <span>
     <img style="vertical-align: middle;" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_602.png" width="60" />
   </span>
@@ -8,8 +8,8 @@
 </div>
 <hr>
 
-
-
+ -->
+# Window Colors
 
 Uniquely and automatically colors each VSCode window.
 
@@ -58,3 +58,8 @@ After disabling or uninstalling this extension, removing these settings will ret
 Hashing and color generation functions adapted from https://www.designedbyaturtle.co.uk/convert-string-to-hexidecimal-colour-with-javascript-vanilla/ by Edd Turtle.
 
 Workspace root folder detection function adapted from https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82 by Van Huynh.
+
+
+
+<br><br>
+<img style="vertical-align: middle;" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_602.png" width="60" />

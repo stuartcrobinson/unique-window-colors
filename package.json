@@ -3,14 +3,14 @@
   "displayName": "Window Colors",
   "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
   "icon": "img/icon_406.png",
-  "version": "0.17.22",
+  "version": "0.17.23",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"
   },
   "galleryBanner": {
-      "color": "#37373d",
-      "theme": "dark"
+    "color": "#37373d",
+    "theme": "dark"
   },
   "engines": {
     "vscode": "^1.20.0"

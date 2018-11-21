@@ -13,13 +13,13 @@
 
 Uniquely and automatically colors each VSCode window.
 
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/darkExample.png" alt="drawing" width="200"/> &nbsp;&nbsp;&nbsp;
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/lightExample.png" alt="drawing" width="200"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_dark_screenshot.png" alt="drawing" width="400"/> &nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_light_screenshot.png" alt="drawing" width="400"/>
 
 
 See settings for `Window Colors: Theme` to match Dark vs Light themes.
 
-<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="300"/>
+<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/>
 
 
 

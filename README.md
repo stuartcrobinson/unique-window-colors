@@ -27,7 +27,7 @@ See settings for `Window Colors: Theme` to match Dark vs Light themes.
 
 When you open a folder in a new VSCode window, this extension picks some colors based on a hash of that folder's name.
 
-Those colors are then saved in `.vscode/settings.json`.  You might want to add .vscode to .gitignore.  
+Those colors are then saved in `.vscode/settings.json`.  You might want to add `.vscode` to `.gitignore`.  
 
 If you don't like the colors picked by this extension, you can change them in `.vscode/settings.json`.  They don't get overwritten, so you have to either manually delete them, or select `revert` in the extension `Window Colors: Theme` settings and reload first in order to switch between `light` and `dark`.
 
@@ -36,8 +36,8 @@ Workspaces containing multiple root folders are not currently supported by this 
 When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
 <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/colorflicker.gif?raw=true" alt="drawing" width="200"/>
-<br><br>
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/liveExample.png" alt="drawing" width="600"/>
+<!-- <br><br>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/liveExample.png" alt="drawing" width="600"/> -->
 
 ## Removal
 

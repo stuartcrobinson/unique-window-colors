@@ -1,4 +1,4 @@
-<img align="left" width="75" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_406.png">
+<img align="left" width="70" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_406.png">
 
 # Window Colors
 

@@ -1,6 +1,15 @@
-<img align="left" width="70" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_406.png">
+<div>
+  <span>
+    <img style="vertical-align: middle;" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_406.png" width="60" />
+  </span>
+  <span style="font-size:35px;vertical-align:middle;font-weight:bold;margin-left:10px">
+    Window Colors
+  </span>
+</div>
+<hr>
 
-# Window Colors
+
+
 
 Uniquely and automatically colors each VSCode window.
 

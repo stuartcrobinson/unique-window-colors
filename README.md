@@ -48,7 +48,7 @@ See settings for `Window Colors: Theme` to match Dark vs Light themes.
 
 After disabling or uninstalling this extension, removing these settings will return your window to the default theme:
 
-`.vscode/settings.json:`
+`.vscode/settings.json`:
 ```javascript
  "workbench.colorCustomizations": {
       "activityBar.background": "#...",

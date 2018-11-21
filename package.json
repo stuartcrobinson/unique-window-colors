@@ -8,6 +8,10 @@
   "author": {
     "name": "Stuart Robinson"
   },
+  "galleryBanner": {
+      "color": "#37373d",
+      "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.20.0"
   },

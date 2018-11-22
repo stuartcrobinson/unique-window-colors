@@ -20,7 +20,15 @@ Uniquely and automatically colors each VSCode window.
 
 This extension modifies a workspace's colors by writing them to `.vscode/settings.json`.
 
-To avoid checking this file in to your remote repository without modifying `.gitignore`, add `.vscode/settings.json` to your project's `.git/info/exclude` file.
+To avoid checking this file in to your remote repository without modifying `.gitignore`, you can either:
+
+1. **locally:** add `.vscode/settings.json` to your project's `.git/info/exclude` file
+
+    _or_
+
+2.  **globally:** create and use a global `.gitignore_global` file like so:
+
+    ```git config --global core.excludesfile ~/.gitignore_global```
 
 ## How it works
 

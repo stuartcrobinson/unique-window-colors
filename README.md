@@ -1,14 +1,3 @@
-<!-- <div>
-  <span>
-    <img style="vertical-align: middle;" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_602.png" width="60" />
-  </span>
-  <span style="font-size:35px;vertical-align:middle;font-weight:bold;margin-left:10px">
-    Window Colors
-  </span>
-</div>
-<hr>
-
- -->
 # Window Colors
 
 Uniquely and automatically colors each VSCode window.
@@ -16,11 +5,23 @@ Uniquely and automatically colors each VSCode window.
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_dark_screenshot.png" alt="drawing" width="330"/> &nbsp;&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_light_screenshot.png" alt="drawing" width="330"/>
 
+## What it does
+
+This extension gives each new VS Code window a unique color based on a hash of the root directory name when it is opened.  It does this by immediately writing three colors to the following settings in `.vscode/settings.json`:
+
+```javascript
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#13332E",
+    "titleBar.activeBackground": "#19423B",
+    "titleBar.activeForeground": "#F6FBFB"
+  }
+```
+
+The extension deletes this file and folder each time the VS Code window is closed unless the colors have been modified or unless they contain any other settings.  
+
 ## Usage with Git
 
-This extension modifies a workspace's colors by writing them to `.vscode/settings.json`.
-
-To avoid checking this file in to your remote repository without modifying `.gitignore`, you can either:
+To avoid checking `.vscode/settings.json` in to your remote repository without modifying `.gitignore`, you can either:
 
 1. **locally:** add `.vscode/settings.json` to your project's `.git/info/exclude` file
 
@@ -30,41 +31,19 @@ To avoid checking this file in to your remote repository without modifying `.git
 
     ```git config --global core.excludesfile ~/.gitignore_global```
 
-## How it works
+## Usage
 
-When you open a folder in a new VSCode window, this extension picks some colors based on a hash of that folder's name.
+Colors do not get overwritten.  This allows you to set custom colors in case all your windows happen to be shades of the same color.  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by or selecting `revert` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
 
-Those colors are then written to `.vscode/settings.json`, and this file is generated if it doens't already exist.
+<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/>
 
-If you don't like the colors picked by this extension, you can change them there.  They don't get overwritten, so you have to either manually delete them, or select `revert` in the extension `Window Colors: Theme` settings and reload first in order to switch between `light` and `dark`.
+## Notes
 
 Workspaces containing multiple root folders are not currently supported by this extension.  The current behavior for multi-folder workspaces is that the workspace color settings will be set by the first window opened, and can be saved in the workspace's `<workspace-name>.code-workspace` configuration file.
 
 When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
 <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/colorflicker.gif?raw=true" alt="drawing" width="200"/>
-<!-- <br><br>
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/liveExample.png" alt="drawing" width="600"/> -->
-
-## Settings
-
-See settings for `Window Colors: Theme` to match Dark vs Light themes.
-
-<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/>
-
-## Removal
-
-After disabling or uninstalling this extension, removing these settings will return your window to the default theme:
-
-`.vscode/settings.json`:
-```javascript
- "workbench.colorCustomizations": {
-      "activityBar.background": "#...",
-      "titleBar.activeBackground": "#...",
-      "titleBar.activeForeground": "#..."
-    }
-```
-
 
 ## Credits
 

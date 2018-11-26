@@ -1,8 +1,52 @@
 import * as Color from 'color';
+import * as fs from 'fs';
 import { ExtensionContext, workspace, WorkspaceFolder } from 'vscode';
+
+interface ColorsInterface {
+  sideBarColor_dark: Color;
+  titleBarTextColor_dark: Color;
+  titleBarColor_dark: Color;
+  sideBarColor_light: Color;
+  titleBarTextColor_light: Color;
+  titleBarColor_light: Color;
+}
+
+export class SettingsFileDeleter {
+  constructor(
+    private workspaceRoot: string,
+    private colors: ColorsInterface) { }
+
+  /** 
+   * Deletes .vscode/settings.json if colors all match either the default light or dark Windows Colors and if no other settings exist.
+   * 
+   * Deletes .vscode if no other files exist.
+   */
+  public dispose() {
+
+    const settingsfile = this.workspaceRoot + '/.vscode/settings.json';
+    const vscodeSettingsDir = this.workspaceRoot + '/.vscode';
+    const settingsFileJson = JSON.parse((fs.readFileSync(settingsfile, "utf8")));
+    // const cc = settingsFileJson['workbench.colorCustomizations'];
+    const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations')));
+
+    if (Object.keys(settingsFileJson).length === 1 && Object.keys(cc).length === 3) {
+
+      const aColorWasModified =
+        (cc['activityBar.background'] !== this.colors.sideBarColor_dark.hex() && cc['activityBar.background'] !== this.colors.sideBarColor_light.hex()) ||
+        (cc['titleBar.activeBackground'] !== this.colors.titleBarColor_dark.hex() && cc['titleBar.activeBackground'] !== this.colors.titleBarColor_light.hex()) ||
+        (cc['titleBar.activeForeground'] !== this.colors.titleBarTextColor_dark.hex() && cc['titleBar.activeForeground'] !== this.colors.titleBarTextColor_light.hex());
+
+      if (!aColorWasModified) {
+        fs.unlinkSync(settingsfile);
+        fs.rmdirSync(vscodeSettingsDir);  //only deletes empty folders
+      }
+    }
+  }
+}
 
 export function activate(context: ExtensionContext) {
   let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+
   const extensionTheme = workspace.getConfiguration('windowColors').get<string>('theme');
 
   /** retain initial unrelated colorCustomizations*/
@@ -12,17 +56,26 @@ export function activate(context: ExtensionContext) {
   let titleBarTextColor: Color = Color('#ffffff');
   let titleBarColor: Color = Color('#ffffff');
 
+
+  const sideBarColor_dark = getColorWithLuminosity(sideBarColor, .02, .027);
+  const titleBarTextColor_dark = getColorWithLuminosity(sideBarColor_dark, 0.95, 1);
+  const titleBarColor_dark = sideBarColor_dark.lighten(0.4);
+
+  const sideBarColor_light = getColorWithLuminosity(sideBarColor, 0.45, 0.55);
+  const titleBarTextColor_light = getColorWithLuminosity(sideBarColor_light, 0, 0.01);
+  const titleBarColor_light = sideBarColor_light.lighten(0.1);
+
   if (extensionTheme === 'dark') {
 
-    sideBarColor = getColorWithLuminosity(sideBarColor, .02, .027);
-    titleBarTextColor = getColorWithLuminosity(sideBarColor, 0.95, 1);
-    titleBarColor = sideBarColor.lighten(0.3);
+    sideBarColor = sideBarColor_dark;
+    titleBarTextColor = titleBarTextColor_dark;
+    titleBarColor = titleBarColor_dark;
   }
   else if (extensionTheme === 'light') {
 
-    sideBarColor = getColorWithLuminosity(sideBarColor, 0.45, 0.55)
-    titleBarTextColor = getColorWithLuminosity(sideBarColor, 0, 0.01)
-    titleBarColor = sideBarColor.lighten(0.1);
+    sideBarColor = sideBarColor_light;
+    titleBarTextColor = titleBarTextColor_light;
+    titleBarColor = titleBarColor_light;
   }
 
   const doRevertColors = extensionTheme === 'revert';
@@ -40,12 +93,22 @@ export function activate(context: ExtensionContext) {
       "activityBar.background": doRevertColors ? undefined : sideBarColor.hex(),
       "titleBar.activeBackground": doRevertColors ? undefined : titleBarColor.hex(),
       "titleBar.activeForeground": doRevertColors ? undefined : titleBarTextColor.hex(),
-      //these lines are for demoing since the extension demo doesn't show the formatted title bar
+      //these lines are for development since the extension demo doesn't show the formatted title bar
       // "sideBarSectionHeader.background": titleBarColor.hex(),
       // "sideBarSectionHeader.foreground": titleBarTextColor.hex()
     };
     workspace.getConfiguration('workbench').update('colorCustomizations', { ...cc, ...newColors }, false);
   }
+
+  const settingsFileDeleter =
+    new SettingsFileDeleter(
+      workspaceRoot,
+      { sideBarColor_dark, titleBarTextColor_dark, titleBarColor_dark, sideBarColor_light, titleBarTextColor_light, titleBarColor_light });
+
+  context.subscriptions.push(settingsFileDeleter);
+
+  // for testing
+  // setTimeout(() => settingsFileDeleter.dispose(), 2000);
 }
 
 const getColorWithLuminosity = (color: Color, min: number, max: number): Color => {

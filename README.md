@@ -1,8 +1,3 @@
-## ⚠ Warning ⚠ 
-This extension has been causing older versions of VSCode (reproduced in 1.20.1) to occasionally max out CPU usage even after VSCode is closed.  ("Code Helper" process on mac).  
-
-Working fine in VSCode 1.30.
-
 # Window Colors
 
 Uniquely and automatically colors each VSCode window.

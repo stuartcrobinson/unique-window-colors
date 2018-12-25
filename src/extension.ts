@@ -122,8 +122,8 @@ export function activate(context: ExtensionContext) {
       "titleBar.activeBackground": doRemoveColors ? undefined : titleBarColor.hex(),
       "titleBar.activeForeground": doRemoveColors ? undefined : titleBarTextColor.hex(),
       //these lines are for development since the extension demo doesn't show the formatted title bar
-      "sideBarSectionHeader.background": titleBarColor.hex(),
-      "sideBarSectionHeader.foreground": titleBarTextColor.hex()
+      // "sideBarSectionHeader.background": titleBarColor.hex(),
+      // "sideBarSectionHeader.foreground": titleBarTextColor.hex()
     };
     workspace.getConfiguration('workbench').update('colorCustomizations', { ...cc, ...newColors }, false);
   }

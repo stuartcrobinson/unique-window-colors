@@ -3,7 +3,7 @@
   "displayName": "Window Colors",
   "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
   "icon": "img/icon_602.png",
-  "version": "1.0.9",
+  "version": "1.0.6",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"
@@ -41,20 +41,29 @@
       "type": "object",
       "title": "Window Colors Configuration",
       "properties": {
-        "windowColors.theme": {
+        "windowColors.🌈 Theme": {
           "type": "string",
           "default": "dark",
           "enum": [
             "dark",
             "light",
-            "revert"
+            "remove"
           ],
           "enumDescriptions": [
-            "Applies a dark-themed color to the activityBar and titleBar.  First 'revert' and reload VSCode for changes to take effect. ",
-            "Applies a light-themed color to the activityBar and titleBar.  First 'revert' and reload VSCode for changes to take effect. ",
+            "Applies a dark-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
+            "Applies a light-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
             "Removes the modified color settings from .vscode/settings.json"
           ],
-          "description": "Controls the color shades to blend with dark or light themes.  To switch betwen light and dark, you must first select 'revert' and reload VSCode to remove the settings, because they are not automatically overwritten.  This lets you modify the selected colors if you don't like what the extension picks.  cmd-⇧-P > 'Reload Window' to reload."
+          "description": "Controls the color shades to blend with dark or light themes.  To switch betwen light and dark, you must first select 'revert' and reload VSCode to remove the settings, because they are not automatically overwritten.  This lets you modify the selected colors if you don't like what the extension picks.  \n\nReload the window for this to take effect (cmd-⇧-P, 'Reload Window')"
+        },
+        "windowColors.🌈 DeleteSettingsFileUponExit": {
+          "type": "boolean",
+          "default": false,
+          "description": "Delete .vscode/settings.json each time you close the workspace/window.  This prevents this file from being saved even when you haven't manually edited it.  This setting is necessary in situations where VSCode needelessly copies global settings to this workspace settings file. \n\n🚨 This will delete any workspace customizations you might have saved."
+        },
+        "windowColors.🌈 BaseColor": {
+          "type": "string",
+          "description": "Html color name or hex color value (eg 'whitesmoke' or '#ffffff').\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')."
         }
       }
     }

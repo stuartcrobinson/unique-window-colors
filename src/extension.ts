@@ -63,7 +63,10 @@ export function activate(context: ExtensionContext) {
   let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
 
   const extensionTheme = workspace.getConfiguration('windowColors').get<string>('🌈 Theme');
-  const baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');
+  let baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');
+  if (baseColor) {
+    baseColor = baseColor.toLowerCase().trim();
+  }
 
   /** retain initial unrelated colorCustomizations*/
   const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations')));

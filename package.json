@@ -63,7 +63,7 @@
         },
         "windowColors.🌈 BaseColor": {
           "type": "string",
-          "description": "Html color name or hex color value (eg 'whitesmoke' or '#ffffff').\n\nhttps://www.w3schools.com/colors/colors_names.asp\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')."
+          "description": "Html color name or hex color value (eg 'whitesmoke' or '#ffffff').\n\nhttps://www.w3schools.com/colors/colors_names.asp\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')\n\nTo remove a Base Color, you'll have to delete the relevant settings in .vscode/settings.json either manually or by selecting '🌈 Delete Settings File Upon Exit'."
         }
       }
     }

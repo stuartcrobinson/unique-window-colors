@@ -59,7 +59,7 @@
         "windowColors.🌈 DeleteSettingsFileUponExit": {
           "type": "boolean",
           "default": false,
-          "description": "Delete .vscode/settings.json each time you close the workspace/window.  This prevents this file from being saved even when you haven't manually edited it.  This setting is necessary in situations where VSCode needelessly copies global settings to this workspace settings file. \n\n🚨 This will delete any workspace customizations you might have saved, including a Base Color."
+          "description": "Delete .vscode/settings.json each time you close the workspace/window.  This prevents this file from being saved even when you haven't manually edited it.  This setting is necessary in situations where VSCode needelessly copies global settings to this workspace settings file. \n\n🚨 This will delete any workspace customizations you might have saved, including a Base Color.\n\nThis should be set in 'User Settings' instead of 'Workspace Settings' or else it will just delete itself."
         },
         "windowColors.🌈 BaseColor": {
           "type": "string",

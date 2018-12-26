@@ -54,7 +54,7 @@
             "Applies a light-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
             "Removes the modified color settings from .vscode/settings.json"
           ],
-          "description": "Controls the color shades to blend with dark or light themes.  To switch betwen light and dark, you must first select 'revert' and reload VSCode to remove the settings, because they are not automatically overwritten.  This lets you modify the selected colors if you don't like what the extension picks.  \n\nReload the window for this to take effect (cmd-⇧-P, 'Reload Window')"
+          "description": "Controls the color shades to blend with dark or light themes.  To switch betwen light and dark, you must first select 'remove' and reload VSCode to remove the settings, because they are not automatically overwritten.  This lets you modify the selected colors if you don't like what the extension picks.  \n\nReload the window for this to take effect (cmd-⇧-P, 'Reload Window')"
         },
         "windowColors.🌈 DeleteSettingsFileUponExit": {
           "type": "boolean",

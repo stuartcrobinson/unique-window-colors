@@ -19,6 +19,8 @@ This extension gives each new VS Code window a unique color based on a hash of t
 
 The extension deletes this file and folder each time the VS Code window is closed unless the colors have been modified or unless they contain any other settings.  
 
+You can optionally set a single Base Color (see Window Colors settings) by hex code or css color name.  
+
 ## Usage with Git
 
 To avoid checking `.vscode/settings.json` in to your remote repository without modifying `.gitignore`, you can either:
@@ -33,9 +35,9 @@ To avoid checking `.vscode/settings.json` in to your remote repository without m
 
 ## Usage
 
-Colors do not get overwritten.  This allows you to set custom colors in case all your windows happen to be shades of the same color.  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by or selecting `revert` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
+Colors do not get overwritten.  This allows you to set custom colors (or a single Base Color).  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by or selecting `remove` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
 
-<img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/>
+<!-- <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/> -->
 
 ## Notes
 

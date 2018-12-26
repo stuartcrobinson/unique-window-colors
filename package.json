@@ -24,7 +24,11 @@
     "theme",
     "workspace",
     "folder",
-    "customization"
+    "customization",
+    "windows",
+    "unique",
+    "folders",
+    "different"
   ],
   "activationEvents": [
     "*"

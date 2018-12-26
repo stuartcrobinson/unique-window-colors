@@ -26,10 +26,15 @@ export class SettingsFileDeleter {
     const settingsfile = this.workspaceRoot + '/.vscode/settings.json';
     const vscodeSettingsDir = this.workspaceRoot + '/.vscode';
     const settingsFileJson = JSON.parse((fs.readFileSync(settingsfile, "utf8")));
-    // const cc = settingsFileJson['workbench.colorCustomizations'];
     const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations')));
 
-    if (Object.keys(settingsFileJson).length === 1 && Object.keys(cc).length === 3) {
+    const deleteSettingsFileUponExit = JSON.parse(JSON.stringify(workspace.getConfiguration('windowColors').get<string>('🌈 DeleteSettingsFileUponExit')));
+
+    if (deleteSettingsFileUponExit) {
+      fs.unlinkSync(settingsfile);
+      fs.rmdirSync(vscodeSettingsDir);  //only deletes empty folders
+    }
+    else if (Object.keys(settingsFileJson).length === 1 && Object.keys(cc).length === 3) {
 
       const aColorWasModified =
         (cc['activityBar.background'] !== this.colors.sideBarColor_dark.hex() && cc['activityBar.background'] !== this.colors.sideBarColor_light.hex()) ||
@@ -46,13 +51,19 @@ export class SettingsFileDeleter {
 
 export function activate(context: ExtensionContext) {
 
+  // https://code.visualstudio.com/api/references/vscode-api
+  // const config = workspace.getConfiguration('launch', vscode.window.activeTextEditor.document.uri);
+  // console.log("JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations'), null, 4)");
+  // console.log(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations'), null, 4));
+
   if (!workspace.workspaceFolders) {
     return;
   }
 
   let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
 
-  const extensionTheme = workspace.getConfiguration('windowColors').get<string>('theme');
+  const extensionTheme = workspace.getConfiguration('windowColors').get<string>('🌈 Theme');
+  const baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');
 
   /** retain initial unrelated colorCustomizations*/
   const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations')));
@@ -60,7 +71,6 @@ export function activate(context: ExtensionContext) {
   let sideBarColor: Color = Color('#' + stringToARGB(workspaceRoot));
   let titleBarTextColor: Color = Color('#ffffff');
   let titleBarColor: Color = Color('#ffffff');
-
 
   const sideBarColor_dark = getColorWithLuminosity(sideBarColor, .02, .027);
   const titleBarTextColor_dark = getColorWithLuminosity(sideBarColor_dark, 0.95, 1);
@@ -82,8 +92,20 @@ export function activate(context: ExtensionContext) {
     titleBarTextColor = titleBarTextColor_light;
     titleBarColor = titleBarColor_light;
   }
+  if (baseColor) {
 
-  const doRevertColors = extensionTheme === 'revert';
+    sideBarColor = Color(baseColor);
+    titleBarColor = sideBarColor.lighten(0.3);
+
+    if (titleBarColor.luminosity() > 0.5) { //a light color https://www.npmjs.com/package/color#luminosity
+      titleBarTextColor = getColorWithLuminosity(sideBarColor, 0, 0.01);
+    }
+    else {
+      titleBarTextColor = getColorWithLuminosity(sideBarColor, 0.95, 1);
+    }
+  }
+
+  const doRemoveColors = extensionTheme === 'remove';
 
   let doUpdateColors = true;
 
@@ -92,12 +114,16 @@ export function activate(context: ExtensionContext) {
     doUpdateColors = false;
   }
 
-  if (doUpdateColors || doRevertColors) {
+  if (baseColor) {
+    doUpdateColors = true;
+  }
+
+  if (doUpdateColors || doRemoveColors) {
 
     const newColors = {
-      "activityBar.background": doRevertColors ? undefined : sideBarColor.hex(),
-      "titleBar.activeBackground": doRevertColors ? undefined : titleBarColor.hex(),
-      "titleBar.activeForeground": doRevertColors ? undefined : titleBarTextColor.hex(),
+      "activityBar.background": doRemoveColors ? undefined : sideBarColor.hex(),
+      "titleBar.activeBackground": doRemoveColors ? undefined : titleBarColor.hex(),
+      "titleBar.activeForeground": doRemoveColors ? undefined : titleBarTextColor.hex(),
       //these lines are for development since the extension demo doesn't show the formatted title bar
       // "sideBarSectionHeader.background": titleBarColor.hex(),
       // "sideBarSectionHeader.foreground": titleBarTextColor.hex()
@@ -113,7 +139,13 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(settingsFileDeleter);
 
   // for testing
-  // setTimeout(() => settingsFileDeleter.dispose(), 2000);
+  // setTimeout(() => {
+  //   console.log("JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations'), null, 4)");
+  //   console.log(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations'), null, 4));
+  // }, 2000);
+
+  // console.log("JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations'), null, 4)");
+  // console.log(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations'), null, 4));
 }
 
 const getColorWithLuminosity = (color: Color, min: number, max: number): Color => {
@@ -132,7 +164,8 @@ const getColorWithLuminosity = (color: Color, min: number, max: number): Color =
 //https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82
 // takes an array of workspace folder objects and return
 // workspace root, assumed to be the first item in the array
-export const getWorkspaceFolder = (folders: WorkspaceFolder[] | undefined): string => {
+export const getWorkspaceFolder = (folders: WorkspaceFolder[] |
+  undefined): string => {
   if (!folders) {
     return '';
   }

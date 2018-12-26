@@ -1,6 +1,3 @@
-## ⚠ Warning ⚠ 
-Some users have been reporting this extension to max out their CPU usage.  I'm so far unable to reproduce this in VS Code version 1.30.  If this happens to you and you're feeling generous, feel free to comment in one of the open CPU-related issues in the github repo with your config and cpuprofile.txt file. (https://github.com/Microsoft/vscode/wiki/Explain:-extension-causes-high-cpu-load) 
-
 # Window Colors
 
 Uniquely and automatically colors each VSCode window.

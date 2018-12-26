@@ -3,7 +3,7 @@
   "displayName": "Window Colors",
   "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
   "icon": "img/icon_602.png",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"

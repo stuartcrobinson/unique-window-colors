@@ -45,6 +45,11 @@ export class SettingsFileDeleter {
 }
 
 export function activate(context: ExtensionContext) {
+
+  if (!workspace.workspaceFolders) {
+    return;
+  }
+
   let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
 
   const extensionTheme = workspace.getConfiguration('windowColors').get<string>('theme');
@@ -127,8 +132,7 @@ const getColorWithLuminosity = (color: Color, min: number, max: number): Color =
 //https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82
 // takes an array of workspace folder objects and return
 // workspace root, assumed to be the first item in the array
-export const getWorkspaceFolder = (folders: WorkspaceFolder[] |
-  undefined): string => {
+export const getWorkspaceFolder = (folders: WorkspaceFolder[] | undefined): string => {
   if (!folders) {
     return '';
   }

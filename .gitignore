@@ -3,6 +3,5 @@ node_modules
 .vscode-test/
 *.vsix
 asdf.html
-scratchpad.txt
-
+scratch*
 

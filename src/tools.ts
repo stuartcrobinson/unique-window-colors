@@ -23,6 +23,25 @@ function getValues(obj: any) {
 }
 
 export class Tools {
+
+
+  static async attemptToSetBackgroundBaseColor(inputColor: string) {
+
+    if (!Tools.isValidColor(inputColor)) {
+      vscode.window.showErrorMessage(`${inputColor}" is not a valid color.`);
+    } else {
+      await Tools.setInternalSettings({
+        [C.BackgroundLightness]: C.defaultLightness,
+        [C.BackgroundSaturation]: C.defaultSaturation,
+        [C.BaseColor]: Color(inputColor).hex(),
+        [C.portfolioAndColor]: undefined,
+        [C.useAutomatic]: undefined,
+        [C.animationDoAnimate]: false
+      });
+    }
+  }
+
+
   static async installAutomaticColor_ifRequested(myGlobalData: any): Promise<boolean> {
 
     const root = Tools.getWorkspaceRoot();
@@ -193,7 +212,7 @@ export class Tools {
   }
 
   static checkElement(initSelected: any | undefined, ar: string[]): string[] {
-  if (initSelected) {
+    if (initSelected) {
       for (let i = 0; i < ar.length; i++) {
         if (ar[i] === initSelected) {
           ar[i] += '  ✅';

@@ -105,6 +105,7 @@ export async function activate(context: ExtensionContext) {
     return;
   }
 
+
   //ensure  portfolio presets are installed
   let myGlobalData = await Tools.installPortfolioPresets_ifMissing();
 

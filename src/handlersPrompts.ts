@@ -16,23 +16,11 @@ export class Prompts {
       value: ''
     };
     const inputColor = await vscode.window.showInputBox(options) as string;
-    if (inputColor === undefined){
+    if (inputColor === undefined) {
       return;
     }
 
-    if (!Tools.isValidColor(inputColor)) {
-      vscode.window.showErrorMessage(`${inputColor}" is not a valid color.`);
-    } else {
-      await Tools.setInternalSettings({
-        [C.BackgroundLightness]: C.defaultLightness,
-        [C.BackgroundSaturation]: C.defaultSaturation,
-        [C.BaseColor]: Color(inputColor).hex(),
-        [C.portfolioAndColor]: undefined,
-        [C.useAutomatic]: undefined,
-        [C.animationDoAnimate]: false
-      });
-
-    }
+    await Tools.attemptToSetBackgroundBaseColor(inputColor);
   }
 
 
@@ -44,7 +32,7 @@ export class Prompts {
       value: ''
     };
     const inputColor = await vscode.window.showInputBox(options) as string;
-    if (inputColor === undefined){
+    if (inputColor === undefined) {
       return;
     }
 

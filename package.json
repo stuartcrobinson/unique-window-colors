@@ -3,7 +3,7 @@
   "displayName": "Window Colors",
   "description": "Uniquely color different VSCode workspace windows with automatic selections or customized colors and themes.",
   "icon": "img/icon_602.png",
-  "version": "1.0.43",
+  "version": "1.0.44",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"

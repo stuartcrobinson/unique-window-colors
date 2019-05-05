@@ -6,10 +6,10 @@
 
 
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_dark_screenshot.png" alt="drawing" width="330"/> &nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_dark_screenshot.png" alt="drawing" width="330"/> &nbsp;&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/live_light_screenshot.png" alt="drawing" width="330"/>
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/stuartcrobinson/windowsColorsImages/master/img/scrollHueFast.gif?" alt="drawing" width="330"/>&nbsp;&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/stuartcrobinson/windowsColorsImages/master/img/setTheme.gif?" alt="drawing" width="330"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/windowsColorsImages/master/img/scrollHueFast.gif?" alt="drawing" width="330"/>&nbsp;&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/stuartcrobinson/windowsColorsImages/master/img/setTheme.gif?" alt="drawing" width="330"/>
 
 ## Use the **Command Palette** to interact with Window Colors:
 * Mac: Cmd+Shift+P

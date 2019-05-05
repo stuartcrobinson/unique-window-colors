@@ -28,7 +28,7 @@ export class Tools {
   static async attemptToSetBackgroundBaseColor(inputColor: string) {
 
     if (!Tools.isValidColor(inputColor)) {
-      vscode.window.showErrorMessage(`${inputColor}" is not a valid color.`);
+      vscode.window.showErrorMessage(`"${inputColor}" is not a valid color.`);
     } else {
       await Tools.setInternalSettings({
         [C.BackgroundLightness]: C.defaultLightness,

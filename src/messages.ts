@@ -16,7 +16,7 @@ export class Errors {
   }
 
   static invalidColor(color: string) {
-    vscode.window.showErrorMessage(`${color}" is not a valid color.`);
+    vscode.window.showErrorMessage(`"${color}" is not a valid color.`);
   }
   static colorationNotFound(portfolioName: string, colorationName: string) {
     vscode.window.showErrorMessage(`Colors "${colorationName}" in portfolio "${portfolioName}" not found.`);

@@ -37,7 +37,7 @@ export class Prompts {
     }
 
     if (!Tools.isValidColor(inputColor)) {
-      vscode.window.showErrorMessage(`${inputColor}" is not a valid color.`);
+      vscode.window.showErrorMessage(`"${inputColor}" is not a valid color.`);
     } else {
       await Tools.setInternalSettings({
         [C.UseCustomForegroundColor]: true,

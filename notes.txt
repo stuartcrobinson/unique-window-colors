@@ -1,2 +1,0 @@
-F5 to load extension debugger
-shift-command-F5 to reload extension debugger

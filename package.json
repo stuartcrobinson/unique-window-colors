@@ -1,9 +1,9 @@
 {
   "name": "unique-window-colors",
   "displayName": "Window Colors",
-  "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
+  "description": "Uniquely color different VSCode workspace windows with automatic selections or customized colors and themes.",
   "icon": "img/icon_602.png",
-  "version": "1.0.22",
+  "version": "1.0.41",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"
@@ -20,15 +20,11 @@
     "Themes"
   ],
   "keywords": [
-    "color",
-    "theme",
-    "workspace",
+    "productivity",
+    "fun",
     "folder",
-    "customization",
-    "windows",
-    "unique",
-    "folders",
-    "different"
+    "customize",
+    "colorblind"
   ],
   "activationEvents": [
     "*"
@@ -37,37 +33,81 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.sayHello",
-        "title": "Hello World"
+        "command": "extension.library",
+        "title": "Library - Save & Load Colors",
+        "category": "🌈 Window Colors"
+      },
+      {
+        "command": "extension.automaticColors",
+        "title": "Automatic Colors",
+        "category": "🌈 Window Colors"
+      },
+      {
+        "command": "extension.setColors",
+        "title": "Set Colors",
+        "category": "🌈 Window Colors"
+      },
+      {
+        "command": "extension.setTheme",
+        "title": "Set Theme",
+        "category": "🌈 Window Colors"
+      },
+      {
+        "command": "extension.animate",
+        "title": "Animate 📽 (Beta)",
+        "category": "🌈 Window Colors"
+      },
+      {
+        "command": "extension.reset",
+        "title": "Remove Colors (opens menu)",
+        "category": "🌈 Window Colors"
       }
     ],
     "configuration": {
       "type": "object",
       "title": "Window Colors Configuration",
       "properties": {
-        "windowColors.🌈 Theme": {
-          "type": "string",
-          "default": "dark",
-          "enum": [
-            "dark",
-            "light",
-            "remove"
-          ],
-          "enumDescriptions": [
-            "Applies a dark-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
-            "Applies a light-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
-            "Removes the modified color settings from .vscode/settings.json"
-          ],
-          "description": "Controls the color shades to blend with dark or light themes.  To switch betwen light and dark, you must first select 'remove' and reload VSCode to remove the settings, because they are not automatically overwritten.  This lets you modify the selected colors if you don't like what the extension picks.  \n\nReload the window for this to take effect (cmd-⇧-P, 'Reload Window')"
-        },
-        "windowColors.🌈 DeleteSettingsFileUponExit": {
+        "windowColors.overwriteAllWorkspaceColorsWithAutomaticPortfolio": {
           "type": "boolean",
-          "default": false,
-          "description": "Delete .vscode/settings.json each time you close the workspace/window.  This prevents this file from being saved even when you haven't manually edited it.  This setting is necessary in situations where VSCode needelessly copies global settings to this workspace settings file. \n\n🚨 This will delete any workspace customizations you might have saved, including a Base Color.\n\nThis should be set in 'User Settings' instead of 'Workspace Settings' or else it will just delete itself."
+          "default": false
         },
-        "windowColors.🌈 BaseColor": {
+        "windowColors.animationMillisecondsPerStep": {
+          "type": "number",
+          "title": "Animation: milliseconds per color",
+          "description": "Faster transitions might cause the UI to flicker.",
+          "default": 200
+        },
+        "windowColors.animationStepsPerTransition": {
+          "type": "number",
+          "title": "Animation: Number of gradient colors between input colors",
+          "description": "Increase for smoother transitions",
+          "default": 400
+        },
+        "windowColors.AutomaticColorsPortfolio": {
           "type": "string",
-          "description": "Html color name or hex color value (eg 'whitesmoke' or '#ffffff').\n\nhttps://www.w3schools.com/colors/colors_names.asp\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')\n\nTo remove a Base Color, you'll have to delete the relevant settings in .vscode/settings.json either manually or by selecting 'Delete Settings File Upon Exit'."
+          "description": "Select the portfolio from which to grab automatic colors.  Custom portfolios can be selected via the command palette.  'Automatic' supplies a light or dark color based on your current theme.",
+          "default": "Automatic"
+        },
+        "windowColors.ModifyTitleBar": {
+          "type": "boolean",
+          "default": true
+        },
+        "windowColors.ModifyActivityBar": {
+          "type": "boolean",
+          "default": true
+        },
+        "windowColors.ModifyStatusBar": {
+          "type": "boolean",
+          "default": true
+        },
+        "windowColors.globalData": {
+          "type": "object"
+        },
+        "windowColors.internalSettings": {
+          "type": "object"
+        },
+        "windowColors.RecentGradientColors": {
+          "type": "array"
         }
       }
     }
@@ -88,6 +128,11 @@
   },
   "dependencies": {
     "@types/color": "^3.0.0",
-    "color": "^3.1.0"
+    "@types/tinycolor2": "^1.4.1",
+    "color": "^3.1.0",
+    "platform-folders": "^0.4.0",
+    "tinycolor2": "^1.4.1",
+    "tinygradient": "^1.0.0",
+    "vscode-nls": "^4.1.0"
   }
 }

@@ -1,0 +1,344 @@
+
+
+TODO - commadn line stuff:
+
+
+  process.argv.forEach(function (val, index, array) {
+    console.log(index + ': ' + val);
+  });
+
+  console.log(JSON.stringify(process.argv))
+  console.log(JSON.stringify(process.env))
+  console.log(JSON.stringify(process.env.stuartcolor))
+  // vscode.window.showInformationMessage(JSON.stringify(process.argv));
+  vscode.window.showInformationMessage(JSON.stringify(process.env));
+  vscode.window.showInformationMessage(JSON.stringify(process.env.stuartcolor));
+
+
+  
+TOOD - custom theme picker doesn't show after removing colors.  no exception either.
+
+
+
+
+-----e
+
+TODO - the automatic color is getting changed when a new window is opened.  it's switching to default (automatic) -- this only happened when opening a bunch of windows at once via the command line
+
+
+
+TODO -- theme is not getting loaded from internal settings on load when settings file stored in weird place
+
+NO -- actually, theme isn't getting saved to myGlobalData internal settings at atll!
+
+look at setTheme()....
+
+fffffff  sometimes settings files are stored in a weird place:
+cd "/Users/stuartrobinson/Library/Application Support/Code/Workspaces/1556590758890"
+
+when the extension loads.... after saving some settings.  we need to find the settings file.  check if it's in local dir or weird central place.
+
+store this location as a global variable and reference it with the methods that return the settings location.
+
+TODO - test everything in multiple windows now.
+
+
+LATER:
+
+TODO - what if workspace doesn't have write permissions?  vscode displays an error message like usual.  might be nice to display a more user friendly version so the extension doesn't look crappy.
+
+TODO - when animation starts, the base color suddenly gets darker (try forestgreen)
+
+TODO - open issue for changing the badge color. --- clean up all issues once loaded.
+
+TODO - open issue:  set timestamp to know when to double up on colors 
+
+
+
+Pascal Mathys https://github.com/rootix 
+John Rodler https://github.com/jrodl3r
+Pedro Gomes https://github.com/azynheira
+Jason Swearingen  https://github.com/jasonswearingen
+Nicolas Delsaux https://github.com/Riduidel
+Nigel G.  https://github.com/nigelgilbert
+Lenin Zapata  https://github.com/LeninZapata
+kaanuki https://github.com/kaanuki
+Vilem https://github.com/buggymcbugfix
+Werner Hahn https://github.com/musiKk
+Lizz  https://github.com/innerlee
+Nils Borgböhmer https://github.com/nilsborg
+Derek Petersen  https://github.com/tuxracer
+Álvaro González https://github.com/kAlvaro
+Joshua Cruz https://github.com/Josh-Cruz
+Gaspar Sabater  https://github.com/gsabater
+Kenneth Auchenberg  https://github.com/auchenberg
+
+[I'm an inline-style link](https://www.google.com)
+
+
+
+
+
+
+
+
+
+
+animation colors different from basecolor.  like titlebar color is different
+
+150 ms is too fast for animation.
+
+set some animations:
+
+red gold green blue  <- dark rainbow rainbow
+
+
+
+  "note": "use extension to view colors in vscode editor window: Color Highlight (naumovs.color-highlight)",
+    "BaseColor": "#A52A2A",
+
+//  #800080
+
+TODO - makae black only profile
+make animations profile
+
+//TODO - clear all settings //TODO - clear all settings during reset including:
+  "windowColors.AutomaticColorsPortfolio": "Easter Egg"
+
+
+
+TODO - make animations portfolio
+TODO - make user portfolio
+
+TODO - clean up reset options
+
+
+TODO - deal with themes.  
+
+
+TODO - add more helpful checkmark emojis for current settings
+- add to: 
+-- Automatic 
+
+
+
+LATER after release - in official roadmap:
+
+TODO - badge color!  -  do this after release?  
+
+
+
+
+Library 
+- load colors
+- save colors
+- delete colors 
+- new portfolio
+- delete portfolio
+- add base colors to portfolio (accept list of colors)
+--- portfolio dropdown 
+--- colors input 
+
+
+^ done??
+
+
+Settings ...... ?
+- Reset ..........
+
+
+Automatic Colors - Color each workspace automatically
+- portfolio - Select a portfolio from which to color workspaces
+- override all existing workspace colors
+---- no/yes
+
+^ need new config setting for this. AutomaticColorsPortfolio
+
+-- to override existing workspace settings -- another global setting. T/F
+WHEN setting this to true:
+1.  go through and delete all myGlobalData objects that aren't members of the selected portfolio. 
+2.  set a global variable for OVERRIDE or something and use this to confirm that the correct coloration is being loaded
+each time a new workspace is opened.  
+
+
+
+
+
+
+NEXT - need to write the code to pick an automatic color.  use portfolio options and compare to existing written colors. 
+
+
+done: ? 
+
+TODO -- handle overwriteAllWorkspaceColorsWithAutomaticPortfolio when opening the extension. -- what does this even mean
+
+
+TODO - handle when same workspace opened in multiple times.  aka when settings.json file still exists when opening. and has full data -- NO.  pull from myglobaldata anyway.
+
+TODO - add global config variable "overwriteWorkspaceWithAutomaticPortfolio" and select from Automatic command.  2 items in dropdown. 1) portfolios.  2) overwriteAllWorkspaceColorsWithAutomaticPortfolio?
+
+
+
+TODO - accept background/foreground pairs as hex or hsl or rgb - no this is stupid
+
+- TOOD - add automaticProfileColor object to internalSettings when colors get set to an automatic value
+- TODO - clear automaticPortfolioAndColor when customizing any of the colors except theme
+
+
+---- when are things customized:
+---- Set Colors.  Animate.  that's it?
+
+- TODO - need to undo selection after pressing ESCAPE in a dropdown color selector
+
+
+
+
+ - make sure internal settings theme equals actual workspace theme.  or should it be nothing if user didn't set theme through WC?
+ 
+ - remove unnecessary parse, stringify
+ 
+ 
+ - new feature:  save current configuration
+
+
+- theme picker
+
+
+TODO - open vscode bug - when a value is changed to '#000000' - then vscode.ConfigurationChangeEvent doesn't trigger
+- add lightness for custom theme
+- add the name of the theme item in the input box description thingie
+
+
+- going haywire.  lifecycle is fucked up.
+
+now: get next steps for theme editor after selecting parameter
+- add: 
+  - THEME EDITOR: - should override all else.  so, should be set after other stuff.  be stored as object (map).
+       { "<theme item>": {"baseColor": "#ff00ff", "saturation": 0.5, "lightness": 0.8}}
+    - pick parameter (flash b/w on hover),  :( dont flash cos too messy when scrolling fast. just highlight 
+    ---- AFTER picking parameter, show dropdown menu for following options:
+    - pick color, 
+    - pick sat, 
+    - pick lightness 
+    - enter color
+  - animate: 1) rainbow. 2) input list of colors to blend between
+             select speed 
+  - save settigns to global on exit.  and delete settings.json 
+             
+
+
+- get global theme.  use this to shade automatic color
+
+- foreground color:  set first option to "automatic".  for foreground sat and lightness, disable dropdown unless user has 
+------- set a custom foreground color first. 
+
+- set first value of all dropdowns to "Current Value (fosidfasdof)"
+
+
+- model is messed up.  saturation can't save adjusted color as base color.  save saturation level and original unmodified base color.
+-   - so saturation level is put on hue scroll later
+- so how to trigger save if sat not saving basecolor?  the saturation level save.  
+- yeah - trigger save on sat level and lightness change also.  scolling only modifies cc. 
+
+- lightness next 
+- how to make smoother scoll?
+- deal with badge colors
+
+
+next
+- set inactive colors upon color selection 
+- save settings more ofte - when?  how?  how avoid saving too much? like avoid saving per cc change.  do save per theme change and windowColors settings changes.
+- update cc per settings change 
+- saturation and lightness dropdowns
+- font pickers
+- how to uninstall ... add "reset workspace" command.  don't reset theme!
+
+next 
+ - how to format dropdowns
+ - how to match shades of color and font colors with hue selection (store in map, pre-calculated)
+ - how to set font color to change separately from background.  
+ - can you change command options programmatically? like the title.  the %blahblahblah% method? no i don't think so https://github.com/Microsoft/vscode-extension-samples/blob/d546364e1e0a2f14d9356564a116ea3579035623/i18n-sample/package.nls.json
+
+- use 3 options for toggling binary switches:
+example:
+
+Current Setting (on)
+on
+off
+
+^^ so that top line will change based on current setting!  and selecting the option won't ruin things
+
+--------------------------------
+
+DO NOT TRY TO READ ANY MORE MANUALS
+
+just download and build fucker's extension and reverse.  
+
+but first move on to figuring out how to save to global user config file.
+
+
+1.  always delete updated settings from settings.json and delete entire file & directory if possible.
+2.  save color settings in global data in a map with key: workspace path
+3.  prioritize command pallete for interacting with extension.  settings file stuff should be basically unused.  b a c k e n d 
+4.  add these key words and in description:  "fun" "workspace"
+
+FEATURE IDEA:  have different portfolio of colors.  wintry colors, fall colors, kookie sk8r colors, etc, basic boring colors. 
+colors to match each vscode default profile.  or the main ones.  
+
+HOW TO DETERMINE the user settings theme???? must be a way ... yeah there must be.  peacock is reading that file to get its favs.
+
+
+how to save to global user config file?
+https://www.google.com/search?q=vscode+extension+write+to+user+settings.json&oq=vscode+extension+write+to+user+settings.json&aqs=chrome..69i57.7513j0j1&sourceid=chrome&ie=UTF-8
+https://www.google.com/search?q=ConfigurationTarget+ConfigurationTarget.Global+update&oq=ConfigurationTarget++ConfigurationTarget.Global+update&aqs=chrome..69i57.7547j0j1&sourceid=chrome&ie=UTF-8
+https://www.reddit.com/r/vscode/comments/74qmvu/extension_writing_is_there_a_way_to_update_user/
+https://github.com/Microsoft/vscode/issues/57307
+https://stackoverflow.com/questions/49467421/updating-vs-code-user-settings-via-an-extension
+https://vshaxe.github.io/vscode-extern/vscode/WorkspaceConfiguration.html
+https://vshaxe.github.io/vscode-extern/vscode/ConfigurationTarget.html
+
+what next ....
+
+saving to global user config is main thing.  
+
+other thing - how to use command pallete.   c o m m a n d s 
+
+add a command first cos prob easy. a command to change the activity bar red maybe.
+
+command pallete options:
+
+Automatic root hash color
+Automatic random color
+Modify activity bar     - (yes/no dropdowns)
+Modify status bar         - (yes/no dropdowns)
+Modify title bar          - (yes/no dropdowns)
+Automatic font color        - (yes/no dropdowns)
+Background color prompt
+Background color spectrum
+Background color brightness
+Background color saturation
+Foreground color prompt
+Foreground color by spectrum
+Foreground color brightness
+Foreground color saturation
+Sportball
+Theme
+Theme editor: parameter
+Theme editor: parameter color prompt
+Theme editor: parameter color spectrum
+Theme editor: parameter color brightness
+Theme editor: parameter color saturation
+Animate
+  Rainbow fast
+  Rainbow medium
+  Rainbow slow
+  Rainbow geologic
+  Random fast
+  Random medium
+  Random slow
+  Random geologic
+Reset
+  
+
+NEXT - command line parameter to set the color when opening folder or file
+

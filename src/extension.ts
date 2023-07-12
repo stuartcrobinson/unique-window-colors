@@ -126,6 +126,7 @@ export function activate(context: ExtensionContext) {
     const newColors = {
       "activityBar.background": doRemoveColors ? undefined : sideBarColor.hex(),
       "titleBar.activeBackground": doRemoveColors ? undefined : titleBarColor.hex(),
+      "titleBar.inactiveBackground": doRemoveColors ? undefined : titleBarColor.darken(0.3).hex(),
       "titleBar.activeForeground": doRemoveColors ? undefined : titleBarTextColor.hex(),
       //these lines are for development since the extension demo doesn't show the formatted title bar
       // "sideBarSectionHeader.background": titleBarColor.hex(),

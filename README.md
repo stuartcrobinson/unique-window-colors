@@ -69,7 +69,7 @@ Preset colors, blends, or custom hex/CSS name. Reverts on cancel.
 
 ## Notes
 
-Workspaces containing multiple root folders are not currently supported by this extension.  The current behavior for multi-folder workspaces is that the workspace color settings will be set by the first window opened, and can be saved in the workspace's `<workspace-name>.code-workspace` configuration file.
+Workspaces containing multiple root folders are not currently supported by this extension.  In a multi-root workspace, VSCode writes `workbench.colorCustomizations` to the `.code-workspace` file rather than `.vscode/settings.json` — this is a VSCode API limitation (the setting is window-scoped and cannot be targeted at the folder level).
 
 When opening new VSCode windows, you might see the relevant theme colors change as they are updated to the new workspace.  This is normal:
 
@@ -85,7 +85,7 @@ Workspace root folder detection function adapted from https://itnext.io/how-to-m
 
 ## Removal
 
-Delete the `workbench.colorCustomizations` block from `.vscode/settings.json` and reload the window.
+Run `Window Colors: Remove Colors from This Window` before uninstalling, or manually delete the `workbench.colorCustomizations` block from `.vscode/settings.json`.
 
 <br><br>
 <img style="vertical-align: middle;" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_602.png" width="60" />

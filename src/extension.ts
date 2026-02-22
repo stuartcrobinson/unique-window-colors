@@ -1,5 +1,7 @@
 import * as Color from 'color';
 import * as fs from 'fs';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const randomSeed = require('random-seed');
 import { ExtensionContext, workspace, WorkspaceFolder, commands, window } from 'vscode';
 
 const MANAGED_COLOR_KEYS = [
@@ -89,13 +91,20 @@ export function activate(context: ExtensionContext) {
   if (baseColor) {
     baseColor = baseColor.toLowerCase().trim();
   }
+  const colorTitleBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorTitleBar') ?? true;
+  const colorActivityBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorActivityBar') ?? true;
   const colorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBar') || false;
-  const colorStatusBarAllStates = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBarAllStates') || false;
 
   /** retain initial unrelated colorCustomizations*/
   const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations') || {}));
 
-  let sideBarColor: Color = Color('#' + stringToARGB(workspaceRoot));
+  // Include URI authority in the seed so that the same folder path opened on
+  // different remote-SSH hosts produces a distinct color (issue #52).
+  // For local windows the authority is empty and behaviour is unchanged.
+  const firstFolder = workspace.workspaceFolders[0];
+  const uriAuthority = firstFolder?.uri.authority || '';
+  const colorSeed = uriAuthority ? `${uriAuthority}:${workspaceRoot}` : workspaceRoot;
+  let sideBarColor: Color = Color('#' + stringToARGB(colorSeed));
   let titleBarTextColor: Color = Color('#ffffff');
   let titleBarColor: Color = Color('#ffffff');
 
@@ -147,67 +156,65 @@ export function activate(context: ExtensionContext) {
 
   const doRemoveColors = extensionTheme === 'remove';
 
-  let doUpdateColors = true;
+  // For each area, determine whether to apply or remove colors.
+  // We avoid overwriting existing (possibly user-customised) colors unless baseColor is set.
+  const applyActivityBar = !doRemoveColors && colorActivityBar && (!cc['activityBar.background'] || !!baseColor);
+  const removeActivityBar = !doRemoveColors && !colorActivityBar && !!cc['activityBar.background'];
 
-  if (cc && (cc['activityBar.background'] || cc['titleBar.activeBackground'] || cc['titleBar.activeForeground'])) {
-    //don't overwrite
-    doUpdateColors = false;
-  }
+  const applyTitleBar = !doRemoveColors && colorTitleBar && (!cc['titleBar.activeBackground'] || !!baseColor);
+  const removeTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.activeBackground'];
 
-  if (baseColor) {
-    doUpdateColors = true;
-  }
+  const applyInactiveTitleBar = !doRemoveColors && colorTitleBar && (applyTitleBar || !cc['titleBar.inactiveBackground']);
+  const removeInactiveTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.inactiveBackground'];
 
-  // Always add inactive colors if they're missing (handles upgrades from older versions)
-  const doAddInactiveColors = doUpdateColors || !cc['titleBar.inactiveBackground'];
+  const applyStatusBar = !doRemoveColors && colorStatusBar && (!cc['statusBar.background'] || !!baseColor);
+  const removeStatusBar = !doRemoveColors && !colorStatusBar && !!cc['statusBar.background'];
 
-  // Handle status bar (normal state): add if enabled and missing, remove if disabled but present
-  const doAddStatusBar = colorStatusBar && (doUpdateColors || !cc['statusBar.background']);
-  const doRemoveStatusBar = !colorStatusBar && cc['statusBar.background'];
+  const anyChange = doRemoveColors || applyActivityBar || removeActivityBar ||
+    applyTitleBar || removeTitleBar || applyInactiveTitleBar || removeInactiveTitleBar ||
+    applyStatusBar || removeStatusBar;
 
-  // Handle status bar (all states: debugging, no-folder): same pattern
-  const doAddStatusBarAllStates = colorStatusBarAllStates && (doUpdateColors || !cc['statusBar.debuggingBackground']);
-  const doRemoveStatusBarAllStates = !colorStatusBarAllStates && cc['statusBar.debuggingBackground'];
-
-  if (doUpdateColors || doRemoveColors || doAddInactiveColors || doAddStatusBar || doRemoveStatusBar || doAddStatusBarAllStates || doRemoveStatusBarAllStates) {
+  if (anyChange) {
 
     const newCc = { ...cc };
 
     if (doRemoveColors) {
-      newCc['activityBar.background'] = undefined;
-      newCc['titleBar.activeBackground'] = undefined;
-      newCc['titleBar.activeForeground'] = undefined;
-      newCc['titleBar.inactiveBackground'] = undefined;
-      newCc['titleBar.inactiveForeground'] = undefined;
-      newCc['statusBar.background'] = undefined;
-      newCc['statusBar.foreground'] = undefined;
-      newCc['statusBar.debuggingBackground'] = undefined;
-      newCc['statusBar.debuggingForeground'] = undefined;
-      newCc['statusBar.noFolderBackground'] = undefined;
-      newCc['statusBar.noFolderForeground'] = undefined;
+      for (const key of MANAGED_COLOR_KEYS) {
+        newCc[key] = undefined;
+      }
     } else {
-      if (doUpdateColors) {
+      if (applyActivityBar) {
         newCc['activityBar.background'] = sideBarColor.hex();
+      } else if (removeActivityBar) {
+        newCc['activityBar.background'] = undefined;
+      }
+
+      if (applyTitleBar) {
         newCc['titleBar.activeBackground'] = titleBarColor.hex();
         newCc['titleBar.activeForeground'] = titleBarTextColor.hex();
+      } else if (removeTitleBar) {
+        newCc['titleBar.activeBackground'] = undefined;
+        newCc['titleBar.activeForeground'] = undefined;
       }
-      if (doAddInactiveColors) {
+
+      if (applyInactiveTitleBar) {
         newCc['titleBar.inactiveBackground'] = titleBarInactiveBackground.hex();
         newCc['titleBar.inactiveForeground'] = titleBarInactiveForeground.hex();
+      } else if (removeInactiveTitleBar) {
+        newCc['titleBar.inactiveBackground'] = undefined;
+        newCc['titleBar.inactiveForeground'] = undefined;
       }
-      if (doAddStatusBar) {
+
+      if (applyStatusBar) {
         newCc['statusBar.background'] = sideBarColor.hex();
         newCc['statusBar.foreground'] = titleBarTextColor.hex();
-      } else if (doRemoveStatusBar) {
-        newCc['statusBar.background'] = undefined;
-        newCc['statusBar.foreground'] = undefined;
-      }
-      if (doAddStatusBarAllStates) {
         newCc['statusBar.debuggingBackground'] = sideBarColor.hex();
         newCc['statusBar.debuggingForeground'] = titleBarTextColor.hex();
         newCc['statusBar.noFolderBackground'] = sideBarColor.hex();
         newCc['statusBar.noFolderForeground'] = titleBarTextColor.hex();
-      } else if (doRemoveStatusBarAllStates) {
+      } else if (removeStatusBar) {
+        newCc['statusBar.background'] = undefined;
+        newCc['statusBar.foreground'] = undefined;
         newCc['statusBar.debuggingBackground'] = undefined;
         newCc['statusBar.debuggingForeground'] = undefined;
         newCc['statusBar.noFolderBackground'] = undefined;
@@ -219,18 +226,19 @@ export function activate(context: ExtensionContext) {
   }
 
   // Build computedColors map for SettingsFileDeleter
-  const computedColors: Record<string, string> = {
-    'activityBar.background': sideBarColor.hex(),
-    'titleBar.activeBackground': titleBarColor.hex(),
-    'titleBar.activeForeground': titleBarTextColor.hex(),
-    'titleBar.inactiveBackground': titleBarInactiveBackground.hex(),
-    'titleBar.inactiveForeground': titleBarInactiveForeground.hex(),
-  };
+  const computedColors: Record<string, string> = {};
+  if (colorActivityBar) {
+    computedColors['activityBar.background'] = sideBarColor.hex();
+  }
+  if (colorTitleBar) {
+    computedColors['titleBar.activeBackground'] = titleBarColor.hex();
+    computedColors['titleBar.activeForeground'] = titleBarTextColor.hex();
+    computedColors['titleBar.inactiveBackground'] = titleBarInactiveBackground.hex();
+    computedColors['titleBar.inactiveForeground'] = titleBarInactiveForeground.hex();
+  }
   if (colorStatusBar) {
     computedColors['statusBar.background'] = sideBarColor.hex();
     computedColors['statusBar.foreground'] = titleBarTextColor.hex();
-  }
-  if (colorStatusBarAllStates) {
     computedColors['statusBar.debuggingBackground'] = sideBarColor.hex();
     computedColors['statusBar.debuggingForeground'] = titleBarTextColor.hex();
     computedColors['statusBar.noFolderBackground'] = sideBarColor.hex();
@@ -243,8 +251,9 @@ export function activate(context: ExtensionContext) {
   const openSettingsDisposable = commands.registerCommand('windowColors.openSettings', async () => {
 
     const cfg = workspace.getConfiguration('windowColors');
+    const curTitleBar = cfg.get<boolean>('🌈 ColorTitleBar') ?? true;
+    const curActivityBar = cfg.get<boolean>('🌈 ColorActivityBar') ?? true;
     const curStatusBar = cfg.get<boolean>('🌈 ColorStatusBar') || false;
-    const curStatusBarAllStates = cfg.get<boolean>('🌈 ColorStatusBarAllStates') || false;
     const curBaseColor = cfg.get<string>('🌈 BaseColor') || null;
     const curTheme = cfg.get<string>('🌈 Theme') || 'dark';
 
@@ -257,16 +266,22 @@ export function activate(context: ExtensionContext) {
 
     const settingsItems: SettingsItem[] = [
       {
-        label: `$(${curStatusBar ? 'check' : 'circle-slash'})  Color Status Bar`,
-        description: curStatusBar ? 'ON' : 'off',
-        detail: 'Apply window color to the bottom status bar (normal/idle state)',
-        action: 'toggleStatusBar',
+        label: `$(${curTitleBar ? 'check' : 'circle-slash'})  Color Title Bar`,
+        description: curTitleBar ? 'ON' : 'off',
+        detail: 'Apply window color to the top title bar',
+        action: 'toggleTitleBar',
       },
       {
-        label: `$(${curStatusBarAllStates ? 'check' : 'circle-slash'})  Color Status Bar — All States`,
-        description: curStatusBarAllStates ? 'ON' : 'off',
-        detail: 'Also color the status bar during debug sessions and when no folder is open',
-        action: 'toggleStatusBarAllStates',
+        label: `$(${curActivityBar ? 'check' : 'circle-slash'})  Color Activity Bar`,
+        description: curActivityBar ? 'ON' : 'off',
+        detail: 'Apply window color to the left activity bar',
+        action: 'toggleActivityBar',
+      },
+      {
+        label: `$(${curStatusBar ? 'check' : 'circle-slash'})  Color Status Bar`,
+        description: curStatusBar ? 'ON' : 'off',
+        detail: 'Apply window color to the bottom status bar (all states)',
+        action: 'toggleStatusBar',
       },
       {
         label: `$(paintcan)  Set Base Color...`,
@@ -280,6 +295,12 @@ export function activate(context: ExtensionContext) {
         detail: 'Switch between dark, light, or remove colors',
         action: 'pickTheme',
       },
+      {
+        label: `$(trash)  Remove Colors from This Window`,
+        description: '',
+        detail: 'Wipe all window color settings and delete .vscode/settings.json if it becomes empty',
+        action: 'removeColors',
+      },
     ];
 
     const picked = await window.showQuickPick(settingsItems, {
@@ -289,17 +310,24 @@ export function activate(context: ExtensionContext) {
 
     if (!picked) { return; }
 
-    if (picked.action === 'toggleStatusBar') {
-      await cfg.update('🌈 ColorStatusBar', !curStatusBar, false);
+    if (picked.action === 'toggleTitleBar') {
+      await cfg.update('🌈 ColorTitleBar', !curTitleBar, false);
       const action = await window.showInformationMessage(
-        `Status Bar Color: ${!curStatusBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
+        `Title Bar Color: ${!curTitleBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
       );
       if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
 
-    } else if (picked.action === 'toggleStatusBarAllStates') {
-      await cfg.update('🌈 ColorStatusBarAllStates', !curStatusBarAllStates, false);
+    } else if (picked.action === 'toggleActivityBar') {
+      await cfg.update('🌈 ColorActivityBar', !curActivityBar, false);
       const action = await window.showInformationMessage(
-        `Status Bar Color All States: ${!curStatusBarAllStates ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
+        `Activity Bar Color: ${!curActivityBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
+      );
+      if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
+
+    } else if (picked.action === 'toggleStatusBar') {
+      await cfg.update('🌈 ColorStatusBar', !curStatusBar, false);
+      const action = await window.showInformationMessage(
+        `Status Bar Color: ${!curStatusBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
       );
       if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
 
@@ -319,6 +347,9 @@ export function activate(context: ExtensionContext) {
         `Theme set to "${themePicked.value}". Reload to apply.`, 'Reload Window'
       );
       if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
+
+    } else if (picked.action === 'removeColors') {
+      commands.executeCommand('windowColors.removeColors');
     }
   });
 
@@ -356,8 +387,9 @@ export function activate(context: ExtensionContext) {
     colorMap.set(customLabel, 'custom');
 
     const currentTheme = workspace.getConfiguration('windowColors').get<string>('🌈 Theme');
+    const currentColorTitleBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorTitleBar') ?? true;
+    const currentColorActivityBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorActivityBar') ?? true;
     const currentColorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBar') || false;
-    const currentColorStatusBarAllStates = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBarAllStates') || false;
     const originalCc = JSON.parse(JSON.stringify(
       workspace.getConfiguration('workbench').get('colorCustomizations') || {}
     ));
@@ -385,16 +417,18 @@ export function activate(context: ExtensionContext) {
       }
 
       const newCc = { ...originalCc };
-      newCc['activityBar.background'] = sideBarColor.hex();
-      newCc['titleBar.activeBackground'] = titleBarColor.hex();
-      newCc['titleBar.activeForeground'] = titleBarTextColor.hex();
-      newCc['titleBar.inactiveBackground'] = sideBarColor.hex();
-      newCc['titleBar.inactiveForeground'] = titleBarTextColor.hex();
+      if (currentColorActivityBar) {
+        newCc['activityBar.background'] = sideBarColor.hex();
+      }
+      if (currentColorTitleBar) {
+        newCc['titleBar.activeBackground'] = titleBarColor.hex();
+        newCc['titleBar.activeForeground'] = titleBarTextColor.hex();
+        newCc['titleBar.inactiveBackground'] = sideBarColor.hex();
+        newCc['titleBar.inactiveForeground'] = titleBarTextColor.hex();
+      }
       if (currentColorStatusBar) {
         newCc['statusBar.background'] = sideBarColor.hex();
         newCc['statusBar.foreground'] = titleBarTextColor.hex();
-      }
-      if (currentColorStatusBarAllStates) {
         newCc['statusBar.debuggingBackground'] = sideBarColor.hex();
         newCc['statusBar.debuggingForeground'] = titleBarTextColor.hex();
         newCc['statusBar.noFolderBackground'] = sideBarColor.hex();
@@ -455,6 +489,47 @@ export function activate(context: ExtensionContext) {
   });
 
   context.subscriptions.push(pickColorDisposable);
+
+  const removeColorsDisposable = commands.registerCommand('windowColors.removeColors', async () => {
+    const settingsFile = workspaceRoot + '/.vscode/settings.json';
+    const vscodeDir = workspaceRoot + '/.vscode';
+
+    if (!fs.existsSync(settingsFile)) {
+      window.showInformationMessage('No workspace settings file found — nothing to remove.');
+      return;
+    }
+
+    let fileContent: Record<string, unknown>;
+    try {
+      fileContent = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+    } catch {
+      window.showErrorMessage('Could not parse .vscode/settings.json.');
+      return;
+    }
+
+    // Remove all managed color keys from workbench.colorCustomizations
+    const cc = (fileContent['workbench.colorCustomizations'] as Record<string, unknown>) || {};
+    for (const key of MANAGED_COLOR_KEYS) {
+      delete cc[key];
+    }
+
+    if (Object.keys(cc).length === 0) {
+      delete fileContent['workbench.colorCustomizations'];
+    } else {
+      fileContent['workbench.colorCustomizations'] = cc;
+    }
+
+    if (Object.keys(fileContent).length === 0) {
+      fs.unlinkSync(settingsFile);
+      try { fs.rmdirSync(vscodeDir); } catch { /* dir not empty, leave it */ }
+      window.showInformationMessage('Window colors removed. Settings file deleted.');
+    } else {
+      fs.writeFileSync(settingsFile, JSON.stringify(fileContent, null, 2) + '\n');
+      window.showInformationMessage('Window colors removed from workspace settings.');
+    }
+  });
+
+  context.subscriptions.push(removeColorsDisposable);
 }
 
 const getColorWithLuminosity = (color: Color, min: number, max: number): Color => {
@@ -468,7 +543,7 @@ const getColorWithLuminosity = (color: Color, min: number, max: number): Color =
     c = c.lighten(0.01);
   }
   return c;
-}
+};
 
 //https://itnext.io/how-to-make-a-visual-studio-code-extension-77085dce7d82
 // takes an array of workspace folder objects and return
@@ -485,34 +560,13 @@ export const getWorkspaceFolder = (folders: readonly WorkspaceFolder[] |
   return uri.fsPath;
 };
 
-function stringToARGB(str: string) {
-  return intToARGB(hashCode(str));
-}
-
-// https://www.designedbyaturtle.co.uk/convert-string-to-hexidecimal-colour-with-javascript-vanilla/
-// Hash any string into an integer value
-// Then we'll use the int and convert to hex.
-function hashCode(str: string) {
-  var hash = 0;
-  for (var i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return hash;
-}
-
-// https://www.designedbyaturtle.co.uk/convert-string-to-hexidecimal-colour-with-javascript-vanilla/
-// Convert an int to hexadecimal with a max length
-// of six characters.
-function intToARGB(i: number) {
-  var hex = ((i >> 24) & 0xFF).toString(16) +
-    ((i >> 16) & 0xFF).toString(16) +
-    ((i >> 8) & 0xFF).toString(16) +
-    (i & 0xFF).toString(16);
-  // Sometimes the string returned will be too short so we
-  // add zeros to pad it out, which later get removed if
-  // the length is greater than six.
-  hex += '000000';
-  return hex.substring(0, 6);
+// Use a seeded PRNG so that similar strings (e.g. my-repo-1 vs my-repo-2)
+// produce very different colors rather than adjacent hash values.
+function stringToARGB(str: string): string {
+  const rand = randomSeed.create(str);
+  return [rand(256), rand(256), rand(256)]
+    .map((n: number) => n.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 

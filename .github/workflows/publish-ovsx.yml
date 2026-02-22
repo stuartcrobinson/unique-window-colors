@@ -21,7 +21,7 @@ jobs:
         run: npx @vscode/vsce package
 
       - name: Create namespace if needed
-        run: npx ovsx create-namespace stuart -p ${{ secrets.OVSX_TOKEN }} || true
+        run: npx ovsx create-namespace stuartcrobinson -p ${{ secrets.OVSX_TOKEN }} || true
 
       - name: Publish to Open VSX
         run: npx ovsx publish *.vsix -p ${{ secrets.OVSX_TOKEN }}

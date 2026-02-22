@@ -9,6 +9,8 @@ vsc-extension-quickstart.md
 tslint.json
 .claude/**
 .codex/**
+.env*
+.secret*
 notes.txt
 img/resources/**
 *.vsix

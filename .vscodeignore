@@ -7,3 +7,8 @@ src/**
 tsconfig.json
 vsc-extension-quickstart.md
 tslint.json
+.claude/**
+.codex/**
+notes.txt
+img/resources/**
+*.vsix

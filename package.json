@@ -4,7 +4,7 @@
   "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
   "icon": "img/icon_602.png",
   "version": "1.2.0",
-  "publisher": "stuart",
+  "publisher": "stuartcrobinson",
   "author": {
     "name": "Stuart Robinson"
   },

@@ -83,5 +83,9 @@ Workspace root folder detection function adapted from https://itnext.io/how-to-m
 
 
 
+## Removal
+
+Delete the `workbench.colorCustomizations` block from `.vscode/settings.json` and reload the window.
+
 <br><br>
 <img style="vertical-align: middle;" src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/icon_602.png" width="60" />

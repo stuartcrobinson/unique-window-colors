@@ -49,7 +49,7 @@ Colors do not get overwritten.  This allows you to set custom colors (or a singl
 
 **Settings menu** — `Cmd+Shift+P` → `Window Colors: Open Settings`
 
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/menu_items.png" alt="menu items" width="500"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/feb22/img/menu_items.png" alt="menu items" width="500"/>
 
 Toggle theme, status bar coloring, or pick a base color.
 
@@ -57,7 +57,7 @@ Toggle theme, status bar coloring, or pick a base color.
 
 **Color picker** — live preview as you browse
 
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/color_picker.png" alt="color picker" width="460"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/feb22/img/color_picker.png" alt="color picker" width="460"/>
 
 Preset colors, blends, or custom hex/CSS name. Reverts on cancel.
 
@@ -65,7 +65,7 @@ Preset colors, blends, or custom hex/CSS name. Reverts on cancel.
 
 **Bottom status bar** — enable via `Color Status Bar` toggle in settings menu
 
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/bottom_bar.png" alt="bottom bar" width="480"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/feb22/img/bottom_bar.png" alt="bottom bar" width="480"/>
 
 ## Notes
 

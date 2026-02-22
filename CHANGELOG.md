@@ -1,7 +1,14 @@
 # Change Log
-All notable changes to the "unique-window-colors" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [1.2.0] - 2026-02-22
+### Added
+- "Remove Colors from This Window" command (`Window Colors: Remove Colors from This Window`) — removes all extension-managed color settings from `.vscode/settings.json` and deletes the file (and `.vscode/` dir) if they become empty
+- Same option available in the Window Colors Settings quick pick menu
 
-## [Unreleased]
-- Initial release
+## [1.1.0] - 2026-02-22
+### Fixed
+- Inactive title bars now show the window's unique color instead of the default VSCode color
+
+### Added
+- Status bar (bottom bar) coloring — enable via `ColorStatusBar` and `ColorStatusBarAllStates` settings
+- Color picker command (`Window Colors: Set Base Color`) for interactively choosing a window color

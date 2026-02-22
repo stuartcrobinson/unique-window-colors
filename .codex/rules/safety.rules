@@ -1,0 +1,245 @@
+# =============================================================================
+# FORBIDDEN — these never run, period
+# =============================================================================
+
+# --- Catastrophic filesystem destruction ---
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Recursive delete from root. No.",
+    match = ["rm -rf /", "rm -rf / --verbose"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf", "~"],
+    decision = "forbidden",
+    justification = "Recursive delete of home directory.",
+    match = ["rm -rf ~", "rm -rf ~ --verbose"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf", "--no-preserve-root"],
+    decision = "forbidden",
+    justification = "Explicit bypass of rm safety.",
+)
+
+# --- Build cache nukes (slow rebuilds, no value) ---
+prefix_rule(
+    pattern = ["cargo", "clean"],
+    decision = "forbidden",
+    justification = "Wipes entire target/. Rebuilds take forever. Remove specific artifacts instead.",
+    match = ["cargo clean"],
+    not_match = ["cargo build", "cargo test"],
+)
+
+prefix_rule(
+    pattern = ["gradle", "clean"],
+    decision = "forbidden",
+    justification = "Wipes build cache. Use incremental builds.",
+    match = ["gradle clean"],
+)
+
+prefix_rule(
+    pattern = ["mvn", "clean"],
+    decision = "forbidden",
+    justification = "Wipes build output. Use incremental builds.",
+    match = ["mvn clean"],
+)
+
+# --- Git force-push (can destroy remote history) ---
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Force push can destroy remote history. Use --force-with-lease if you must.",
+    match = ["git push --force", "git push --force origin main"],
+    not_match = ["git push origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "-f"],
+    decision = "forbidden",
+    justification = "Force push shorthand. Use --force-with-lease if you must.",
+    match = ["git push -f"],
+    not_match = ["git push"],
+)
+
+# --- Accidental package publishing ---
+prefix_rule(
+    pattern = ["npm", "publish"],
+    decision = "forbidden",
+    justification = "Publishing to npm registry requires explicit human action.",
+    match = ["npm publish"],
+)
+
+prefix_rule(
+    pattern = ["cargo", "publish"],
+    decision = "forbidden",
+    justification = "Publishing to crates.io requires explicit human action.",
+    match = ["cargo publish"],
+)
+
+prefix_rule(
+    pattern = ["twine", "upload"],
+    decision = "forbidden",
+    justification = "Publishing to PyPI requires explicit human action.",
+)
+
+prefix_rule(
+    pattern = ["gem", "push"],
+    decision = "forbidden",
+    justification = "Publishing to RubyGems requires explicit human action.",
+)
+
+# --- Disk/partition destruction ---
+prefix_rule(
+    pattern = ["mkfs"],
+    decision = "forbidden",
+    justification = "Formats a drive. Absolutely not.",
+)
+
+prefix_rule(
+    pattern = ["dd"],
+    decision = "forbidden",
+    justification = "Raw disk writes. Too dangerous for automated use.",
+)
+
+prefix_rule(
+    pattern = ["diskutil", "eraseDisk"],
+    decision = "forbidden",
+    justification = "Erases a disk.",
+)
+
+# --- Security disasters ---
+prefix_rule(
+    pattern = ["chmod", "-R", "777"],
+    decision = "forbidden",
+    justification = "World-writable recursive permissions. Never appropriate.",
+    match = ["chmod -R 777 /var"],
+)
+
+prefix_rule(
+    pattern = ["chmod", "777"],
+    decision = "forbidden",
+    justification = "World-writable permissions.",
+    match = ["chmod 777 somefile"],
+)
+
+# =============================================================================
+# PROMPT — ask before running (legitimate uses exist, but verify first)
+# =============================================================================
+
+# --- Recursive deletes (sometimes needed, always confirm) ---
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "allow",
+    justification = "Recursive force-delete. Confirm the target path is correct.",
+    match = ["rm -rf node_modules", "rm -rf build"],
+    not_match = ["rm file.txt"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-r"],
+    decision = "allow",
+    justification = "Recursive delete. Confirm the target path is correct.",
+    match = ["rm -r some_dir"],
+)
+
+# --- Git operations that discard work ---
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "allow",
+    justification = "Discards all uncommitted changes permanently.",
+    match = ["git reset --hard", "git reset --hard HEAD~1"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-f"],
+    decision = "allow",
+    justification = "Deletes untracked files permanently.",
+    match = ["git clean -f", "git clean -f -d"],
+)
+
+prefix_rule(
+    pattern = ["git", "checkout", "."],
+    decision = "allow",
+    justification = "Discards all unstaged changes in the working tree.",
+    match = ["git checkout ."],
+    not_match = ["git checkout main"],
+)
+
+prefix_rule(
+    pattern = ["git", "restore", "."],
+    decision = "allow",
+    justification = "Discards all unstaged changes in the working tree.",
+    match = ["git restore ."],
+)
+
+prefix_rule(
+    pattern = ["git", "branch", "-D"],
+    decision = "allow",
+    justification = "Force-deletes a branch even if not merged.",
+    match = ["git branch -D feature"],
+    not_match = ["git branch -d feature"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force-with-lease"],
+    decision = "allow",
+    justification = "Safer force-push, but still rewrites remote history. Confirm.",
+    match = ["git push --force-with-lease"],
+)
+
+# --- Elevated privileges ---
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "allow",
+    justification = "Running as root. Confirm this is necessary.",
+    match = ["sudo apt install foo"],
+)
+
+# --- Container/infra cleanup ---
+prefix_rule(
+    pattern = ["docker", "system", "prune"],
+    decision = "allow",
+    justification = "Removes unused containers, images, networks. Confirm.",
+)
+
+prefix_rule(
+    pattern = ["docker", "volume", "rm"],
+    decision = "allow",
+    justification = "Deletes a docker volume and its data.",
+)
+
+# --- Process killing ---
+prefix_rule(
+    pattern = ["killall"],
+    decision = "allow",
+    justification = "Kills all processes by name. Confirm the target.",
+    match = ["killall node"],
+)
+
+prefix_rule(
+    pattern = ["pkill"],
+    decision = "allow",
+    justification = "Pattern-based process kill. Confirm the target.",
+    match = ["pkill -f server"],
+)
+
+# --- Package removal ---
+prefix_rule(
+    pattern = ["brew", "uninstall"],
+    decision = "allow",
+    justification = "Removing a system package. Confirm.",
+)
+
+prefix_rule(
+    pattern = ["pip", "uninstall"],
+    decision = "allow",
+    justification = "Removing a Python package. Confirm.",
+)
+
+prefix_rule(
+    pattern = ["npm", "uninstall", "-g"],
+    decision = "allow",
+    justification = "Removing a global npm package. Confirm.",
+)

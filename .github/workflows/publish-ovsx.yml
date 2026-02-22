@@ -1,0 +1,27 @@
+name: Publish to Open VSX Registry
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-ovsx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Package extension
+        run: npx @vscode/vsce package
+
+      - name: Create namespace if needed
+        run: npx ovsx create-namespace stuartcrobinson -p ${{ secrets.OVSX_TOKEN }} || true
+
+      - name: Publish to Open VSX
+        run: npx ovsx publish *.vsix -p ${{ secrets.OVSX_TOKEN }}

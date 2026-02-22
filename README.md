@@ -7,13 +7,23 @@ Uniquely and automatically colors each VSCode window.
 
 ## What it does
 
-This extension gives each new VS Code window a unique color based on a hash of the root directory name when it is opened.  It does this by immediately writing three colors to the following settings in `.vscode/settings.json`:
+This extension gives each new VS Code window a unique color based on a hash of the root directory name when it is opened.  It does this by immediately writing to the following settings in `.vscode/settings.json`:
 
 ```javascript
   "workbench.colorCustomizations": {
     "activityBar.background": "#13332E",
     "titleBar.activeBackground": "#19423B",
-    "titleBar.activeForeground": "#F6FBFB"
+    "titleBar.activeForeground": "#F6FBFB",
+    "titleBar.inactiveBackground": "#13332E",
+    "titleBar.inactiveForeground": "#F6FBFB",
+    // if Color Status Bar is enabled:
+    "statusBar.background": "#13332E",
+    "statusBar.foreground": "#F6FBFB",
+    // if Color Status Bar — All States is enabled:
+    "statusBar.debuggingBackground": "#13332E",
+    "statusBar.debuggingForeground": "#F6FBFB",
+    "statusBar.noFolderBackground": "#13332E",
+    "statusBar.noFolderForeground": "#F6FBFB"
   }
 ```
 
@@ -35,9 +45,27 @@ To avoid checking `.vscode/settings.json` in to your remote repository without m
 
 ## Usage
 
-Colors do not get overwritten.  This allows you to set custom colors (or a single Base Color).  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by or selecting `remove` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
+Colors do not get overwritten.  This allows you to set custom colors (or a single Base Color).  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by selecting `remove` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
 
-<!-- <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/> -->
+**Settings menu** — `Cmd+Shift+P` → `Window Colors: Open Settings`
+
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/menu_items.png" alt="menu items" width="500"/>
+
+Toggle theme, status bar coloring, or pick a base color.
+
+---
+
+**Color picker** — live preview as you browse
+
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/color_picker.png" alt="color picker" width="460"/>
+
+Preset colors, blends, or custom hex/CSS name. Reverts on cancel.
+
+---
+
+**Bottom status bar** — enable via `Color Status Bar` toggle in settings menu
+
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/bottom_bar.png" alt="bottom bar" width="480"/>
 
 ## Notes
 

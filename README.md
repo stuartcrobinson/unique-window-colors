@@ -63,9 +63,9 @@ Preset colors, blends, or custom hex/CSS name. Reverts on cancel.
 
 ---
 
-**Bottom status bar** — enable via `Color Status Bar` toggle in settings menu
+**Settings** — toggle title bar, activity bar, and status bar coloring independently, or remove colors from the window entirely.
 
-<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/bottom_bar.png" alt="bottom bar" width="480"/>
+<img src="https://raw.githubusercontent.com/stuartcrobinson/unique-window-colors/master/img/settings.png" alt="settings" width="500"/>
 
 ## Notes
 

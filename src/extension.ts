@@ -78,13 +78,7 @@ export class SettingsFileDeleter {
   }
 }
 
-export function activate(context: ExtensionContext) {
-
-  if (!workspace.workspaceFolders) {
-    return;
-  }
-
-  let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+async function applyWindowColors(workspaceRoot: string): Promise<Record<string, string>> {
 
   const extensionTheme = workspace.getConfiguration('windowColors').get<string>('🌈 Theme');
   let baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');
@@ -101,7 +95,7 @@ export function activate(context: ExtensionContext) {
   // Include URI authority in the seed so that the same folder path opened on
   // different remote-SSH hosts produces a distinct color (issue #52).
   // For local windows the authority is empty and behaviour is unchanged.
-  const firstFolder = workspace.workspaceFolders[0];
+  const firstFolder = workspace.workspaceFolders?.[0];
   const uriAuthority = firstFolder?.uri.authority || '';
   const colorSeed = uriAuthority ? `${uriAuthority}:${workspaceRoot}` : workspaceRoot;
   let sideBarColor: Color = Color('#' + stringToARGB(colorSeed));
@@ -222,7 +216,7 @@ export function activate(context: ExtensionContext) {
       }
     }
 
-    workspace.getConfiguration('workbench').update('colorCustomizations', newCc, false);
+    await workspace.getConfiguration('workbench').update('colorCustomizations', newCc, false);
   }
 
   // Build computedColors map for SettingsFileDeleter
@@ -244,9 +238,21 @@ export function activate(context: ExtensionContext) {
     computedColors['statusBar.noFolderBackground'] = sideBarColor.hex();
     computedColors['statusBar.noFolderForeground'] = titleBarTextColor.hex();
   }
+  return computedColors;
+}
 
-  const settingsFileDeleter = new SettingsFileDeleter(workspaceRoot, computedColors);
-  context.subscriptions.push(settingsFileDeleter);
+export function activate(context: ExtensionContext) {
+
+  if (!workspace.workspaceFolders) {
+    return;
+  }
+
+  const workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+
+  applyWindowColors(workspaceRoot).then(computedColors => {
+    const settingsFileDeleter = new SettingsFileDeleter(workspaceRoot, computedColors);
+    context.subscriptions.push(settingsFileDeleter);
+  });
 
   const openSettingsDisposable = commands.registerCommand('windowColors.openSettings', async () => {
 
@@ -312,24 +318,15 @@ export function activate(context: ExtensionContext) {
 
     if (picked.action === 'toggleTitleBar') {
       await cfg.update('🌈 ColorTitleBar', !curTitleBar, false);
-      const action = await window.showInformationMessage(
-        `Title Bar Color: ${!curTitleBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
-      );
-      if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
+      await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'toggleActivityBar') {
       await cfg.update('🌈 ColorActivityBar', !curActivityBar, false);
-      const action = await window.showInformationMessage(
-        `Activity Bar Color: ${!curActivityBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
-      );
-      if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
+      await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'toggleStatusBar') {
       await cfg.update('🌈 ColorStatusBar', !curStatusBar, false);
-      const action = await window.showInformationMessage(
-        `Status Bar Color: ${!curStatusBar ? 'ON' : 'OFF'}. Reload to apply.`, 'Reload Window'
-      );
-      if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
+      await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'pickColor') {
       commands.executeCommand('windowColors.pickBaseColor');
@@ -343,10 +340,7 @@ export function activate(context: ExtensionContext) {
       const themePicked = await window.showQuickPick(themeItems, { placeHolder: 'Select theme' });
       if (!themePicked) { return; }
       await cfg.update('🌈 Theme', themePicked.value, false);
-      const action = await window.showInformationMessage(
-        `Theme set to "${themePicked.value}". Reload to apply.`, 'Reload Window'
-      );
-      if (action === 'Reload Window') { commands.executeCommand('workbench.action.reloadWindow'); }
+      await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'removeColors') {
       commands.executeCommand('windowColors.removeColors');
@@ -517,6 +511,13 @@ export function activate(context: ExtensionContext) {
       delete fileContent['workbench.colorCustomizations'];
     } else {
       fileContent['workbench.colorCustomizations'] = cc;
+    }
+
+    // Remove all windowColors.* settings
+    for (const key of Object.keys(fileContent)) {
+      if (key.startsWith('windowColors.')) {
+        delete fileContent[key];
+      }
     }
 
     if (Object.keys(fileContent).length === 0) {

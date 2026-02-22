@@ -1,9 +1,14 @@
 # Change Log
 
+## [1.2.1] - 2026-02-22
+### Changed
+- Version bump to align VS Code and Open VSX marketplace versions
+
 ## [1.2.0] - 2026-02-22
 ### Added
 - "Remove Colors from This Window" command (`Window Colors: Remove Colors from This Window`) — removes all extension-managed color settings from `.vscode/settings.json` and deletes the file (and `.vscode/` dir) if they become empty
 - Same option available in the Window Colors Settings quick pick menu
+
 
 ## [1.1.0] - 2026-02-22
 ### Fixed

@@ -12,6 +12,7 @@ tslint.json
 .env*
 .secret*
 notes.txt
+notes.md
 img/resources/**
 *.vsix
 .env.secret

@@ -60,7 +60,7 @@ export function activate(context: ExtensionContext) {
     return;
   }
 
-  let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+  let workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders as WorkspaceFolder[]);
 
   const extensionTheme = workspace.getConfiguration('windowColors').get<string>('🌈 Theme');
   let baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');

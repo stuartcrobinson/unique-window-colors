@@ -1,4 +1,4 @@
-> **Note:** This extension is currently under active development. A new version with additional features is in progress.
+> **Note:** This extension is currently under active development. A new version with additional features is in progress. 🚧
 
 # Window Colors
 

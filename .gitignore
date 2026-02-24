@@ -5,7 +5,3 @@ node_modules
 asdf.html
 
 
-.secret*/
-.env.secret
-
-.claude

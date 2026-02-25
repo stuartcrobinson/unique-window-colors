@@ -3,7 +3,7 @@
   "displayName": "Window Colors",
   "description": "Automatically adds a unique color to each window's activityBar and titleBar.",
   "icon": "img/icon_602.png",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "publisher": "stuart",
   "author": {
     "name": "Stuart Robinson"
@@ -33,8 +33,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.sayHello",
-        "title": "Hello World"
+        "command": "windowColors.openSettings",
+        "title": "Window Colors: Settings"
+      },
+      {
+        "command": "windowColors.pickBaseColor",
+        "title": "Window Colors: Set Base Color"
+      },
+      {
+        "command": "windowColors.removeColors",
+        "title": "Window Colors: Remove Colors from This Window"
       }
     ],
     "configuration": {
@@ -43,15 +51,17 @@
       "properties": {
         "windowColors.🌈 Theme": {
           "type": "string",
-          "default": "dark",
+          "default": "auto",
           "enum": [
+            "auto",
             "dark",
             "light",
             "remove"
           ],
           "enumDescriptions": [
-            "Applies a dark-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
-            "Applies a light-themed color to the activityBar and titleBar.  First 'remove' and reload VSCode for changes to take effect. ",
+            "Automatically matches your VS Code color theme (dark or light)",
+            "Always apply dark-themed window colors",
+            "Always apply light-themed window colors",
             "Removes the modified color settings from .vscode/settings.json"
           ],
           "description": "Controls the color shades to blend with dark or light themes.  To switch betwen light and dark, you must first select 'remove' and reload VSCode to remove the settings, because they are not automatically overwritten.  This lets you modify the selected colors if you don't like what the extension picks.  \n\nReload the window for this to take effect (cmd-⇧-P, 'Reload Window')"
@@ -64,6 +74,26 @@
         "windowColors.🌈 BaseColor": {
           "type": "string",
           "description": "Html color name or hex color value (eg 'whitesmoke' or '#ffffff').\n\nhttps://www.w3schools.com/colors/colors_names.asp\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')\n\nTo remove a Base Color, you'll have to delete the relevant settings in .vscode/settings.json either manually or by selecting 'Delete Settings File Upon Exit'."
+        },
+        "windowColors.🌈 ColorTitleBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Apply the window's unique color to the top title bar.\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')"
+        },
+        "windowColors.🌈 ColorActivityBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Apply the window's unique color to the left activity bar.\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')"
+        },
+        "windowColors.🌈 ColorStatusBar": {
+          "type": "boolean",
+          "default": false,
+          "description": "Apply the window's unique color to the bottom status bar (all states: normal, debugging, no folder).\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')"
+        },
+        "windowColors.🌈 NeverColorThisWindow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Permanently skip coloring this window. When enabled, Window Colors will not apply or reapply any colors to this workspace."
         }
       }
     }
@@ -75,13 +105,21 @@
     "test": "npm run compile"
   },
   "devDependencies": {
-    "typescript": "^4.9.0",
-    "@types/vscode": "^1.20.0",
+    "@types/color": "^3.0.0",
+    "@types/mocha": "^10.0.0",
     "@types/node": "^18.0.0",
-    "@types/mocha": "^10.0.0"
+    "@types/random-seed": "^0.3.0",
+    "@types/vscode": "^1.20.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^10.0.1",
+    "typescript": "^4.9.0"
   },
   "dependencies": {
-    "@types/color": "^3.0.0",
-    "color": "^3.1.0"
+    "color": "^3.1.0",
+    "random-seed": "^0.3.0"
+  },
+  "overrides": {
+    "minimatch": "^10.2.1"
   }
 }

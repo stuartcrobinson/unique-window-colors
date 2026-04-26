@@ -2,9 +2,17 @@ import * as Color from 'color';
 import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const randomSeed = require('random-seed');
-import { ExtensionContext, workspace, WorkspaceFolder, commands, window, ColorThemeKind } from 'vscode';
+import { ExtensionContext, workspace, WorkspaceFolder, commands, window, ColorThemeKind, languages, DocumentColorProvider, TextDocument, CancellationToken, ColorInformation, ColorPresentation, Color as VsColor, Range } from 'vscode';
+
+const BASE_COLOR_KEY = 'baseColor';
+const BASE_COLOR_JSON_RE = /"baseColor"\s*:\s*"(#[0-9a-fA-F]{3,8})"/g;
+const SETTINGS_JSON_SELECTORS = [
+  { language: 'jsonc', pattern: '**/settings.json' },
+  { language: 'json', pattern: '**/settings.json' },
+];
 
 const MANAGED_COLOR_KEYS = [
+  BASE_COLOR_KEY,
   'activityBar.background',
   'titleBar.activeBackground',
   'titleBar.activeForeground',
@@ -81,6 +89,114 @@ function resolveTheme(setting: string | undefined): string | undefined {
   return setting;
 }
 
+function getConfiguredBaseColor(cc?: Record<string, unknown>): string | undefined {
+  const colorCustomizations = cc || workspace.getConfiguration('workbench').get('colorCustomizations') as Record<string, unknown> || {};
+  const colorCustomizationsBaseColor = colorCustomizations[BASE_COLOR_KEY];
+  if (typeof colorCustomizationsBaseColor === 'string' && colorCustomizationsBaseColor.trim()) {
+    return colorCustomizationsBaseColor.trim();
+  }
+
+  return undefined;
+}
+
+function normalizeBaseColorInput(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  let normalized = value.trim();
+  // Normalize bare hex digits like "98ffd4" → "#98ffd4"
+  if (/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$|^[0-9a-fA-F]{8}$/.test(normalized)) {
+    normalized = `#${normalized}`;
+  }
+  return normalized.toLowerCase();
+}
+
+function tryParseColor(value: string): Color | undefined {
+  try {
+    return Color(value);
+  } catch {
+    return undefined;
+  }
+}
+
+function expandHexTo8DigitIfNeeded(hex: string): string {
+  // #rgb -> #rrggbb
+  if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+    return hex.replace(/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/, '#$1$1$2$2$3$3');
+  }
+  // #rgba -> #rrggbbaa
+  if (/^#[0-9a-fA-F]{4}$/.test(hex)) {
+    return hex.replace(
+      /^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/,
+      '#$1$1$2$2$3$3$4$4'
+    );
+  }
+  return hex;
+}
+
+function hexToVsColor(hex: string): VsColor {
+  const expanded = expandHexTo8DigitIfNeeded(hex);
+  const r = parseInt(expanded.slice(1, 3), 16) / 255;
+  const g = parseInt(expanded.slice(3, 5), 16) / 255;
+  const b = parseInt(expanded.slice(5, 7), 16) / 255;
+  const a = expanded.length >= 9 ? parseInt(expanded.slice(7, 9), 16) / 255 : 1;
+  return new VsColor(r, g, b, a);
+}
+
+function channelToHex(v: number): string {
+  return Math.round(v * 255).toString(16).padStart(2, '0');
+}
+
+function toQuotedHexPresentation(color: VsColor): string {
+  const hex = color.alpha < 1
+    ? `#${channelToHex(color.red)}${channelToHex(color.green)}${channelToHex(color.blue)}${channelToHex(color.alpha)}`
+    : `#${channelToHex(color.red)}${channelToHex(color.green)}${channelToHex(color.blue)}`;
+  return `"${hex}"`;
+}
+
+function findQuotedTokenRange(document: TextDocument, match: RegExpExecArray, token: string): Range {
+  const tokenOffset = match[0].indexOf(`"${token}"`);
+  const start = document.positionAt(match.index + tokenOffset);
+  const end = document.positionAt(match.index + tokenOffset + token.length + 2);
+  return new Range(start, end);
+}
+
+function collectBaseColorInfos(document: TextDocument): ColorInformation[] {
+  const text = document.getText();
+  const infos: ColorInformation[] = [];
+  let match: RegExpExecArray | null;
+  BASE_COLOR_JSON_RE.lastIndex = 0;
+
+  while ((match = BASE_COLOR_JSON_RE.exec(text)) !== null) {
+    const fullColorToken = match[1];
+    infos.push(new ColorInformation(
+      findQuotedTokenRange(document, match, fullColorToken),
+      hexToVsColor(fullColorToken)
+    ));
+  }
+
+  return infos;
+}
+
+function createBaseColorProvider(): DocumentColorProvider {
+  return {
+    provideDocumentColors(document: TextDocument, _token: CancellationToken): ColorInformation[] {
+      return collectBaseColorInfos(document);
+    },
+    provideColorPresentations(color: VsColor): ColorPresentation[] {
+      return [new ColorPresentation(toQuotedHexPresentation(color))];
+    }
+  };
+}
+
+function registerBaseColorProvider(context: ExtensionContext): void {
+  const provider = createBaseColorProvider();
+  context.subscriptions.push(
+    ...SETTINGS_JSON_SELECTORS.map(selector => languages.registerColorProvider(selector, provider))
+  );
+}
+
 // Derive themed sidebar, title bar, and title bar text colors from a raw base color.
 // When respectExtremes is true, colors already beyond the dark/light threshold are
 // kept as-is (used for user-chosen baseColor overrides like Black or White).
@@ -94,9 +210,12 @@ function deriveThemedColors(rawColor: Color, theme: string | undefined, respectE
   const grayish = achromatic && rawColor.luminosity() > 0.05 && rawColor.luminosity() < 0.5;
   const whitish = achromatic && rawColor.luminosity() >= 0.5;
 
-  // Dark-mode luminosity ranges (reused by light mode for the sidebar)
-  const dkMin = whitish ? 0.03 : grayish ? 0.008 : yellowish ? 0.04 : 0.02;
-  const dkMax = whitish ? 0.045 : grayish ? 0.013 : yellowish ? 0.055 : 0.027;
+  // Dark-mode luminosity ranges (reused by light mode for the sidebar).
+  // For bright user-chosen colors (luminosity > 0.3) we use a higher floor so the
+  // result is a visibly-tinted medium-dark shade rather than near-black.
+  const brightUserColor = respectExtremes && rawColor.luminosity() > 0.3;
+  const dkMin = whitish ? 0.03 : grayish ? 0.008 : yellowish ? 0.04 : brightUserColor ? 0.05 : 0.02;
+  const dkMax = whitish ? 0.045 : grayish ? 0.013 : yellowish ? 0.055 : brightUserColor ? 0.07 : 0.027;
 
   if (theme === 'dark') {
     const sideBar = respectExtremes && rawColor.luminosity() < dkMin
@@ -195,7 +314,10 @@ export class SettingsFileDeleter {
   }
 }
 
-async function applyWindowColors(workspaceRoot: string): Promise<Record<string, string>> {
+async function applyWindowColors(
+  workspaceRoot: string,
+  options?: { forceApplyManagedColors?: boolean }
+): Promise<Record<string, string>> {
 
   const neverColor = workspace.getConfiguration('windowColors').get<boolean>('🌈 NeverColorThisWindow') ?? false;
   if (neverColor) {
@@ -215,22 +337,25 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
   }
 
   const extensionTheme = resolveTheme(workspace.getConfiguration('windowColors').get<string>('🌈 Theme'));
-  let baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');
-  if (baseColor) {
-    baseColor = baseColor.toLowerCase().trim();
-  }
-  const colorTitleBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorTitleBar') ?? true;
-  const colorActivityBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorActivityBar') ?? true;
-  const colorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBar') ?? false;
+  const forceApplyManagedColors = options?.forceApplyManagedColors ?? false;
 
   // Retain initial unrelated colorCustomizations
   const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations') || {}));
 
-  let derived: DerivedColors;
+  let baseColor = normalizeBaseColorInput(getConfiguredBaseColor(cc as Record<string, unknown>));
+  const colorTitleBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorTitleBar') ?? true;
+  const colorActivityBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorActivityBar') ?? true;
+  const colorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBar') ?? false;
 
-  if (baseColor) {
-    derived = deriveThemedColors(Color(baseColor), extensionTheme, true);
+  let derived: DerivedColors;
+  let effectiveBaseColor: string | undefined = baseColor;
+  const rawBaseColor = baseColor ? tryParseColor(baseColor) : undefined;
+
+  if (rawBaseColor) {
+    derived = deriveThemedColors(rawBaseColor, extensionTheme, true);
   } else {
+    baseColor = undefined;
+    effectiveBaseColor = undefined;
     // Include URI authority in the seed so that the same folder path opened on
     // different remote-SSH hosts produces a distinct color (issue #52).
     // For local windows the authority is empty and behaviour is unchanged.
@@ -247,6 +372,9 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
       rawColor = Color(cc['activityBar.background']);
     }
 
+    // Seed a default baseColor so users can edit one key and regenerate all managed shades.
+    effectiveBaseColor = rawColor.hex();
+
     derived = deriveThemedColors(rawColor, extensionTheme);
   }
 
@@ -255,21 +383,27 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
 
   const doRemoveColors = extensionTheme === 'remove';
 
+  const applyBaseColor = !doRemoveColors && !!effectiveBaseColor &&
+    (forceApplyManagedColors || cc[BASE_COLOR_KEY] !== effectiveBaseColor);
+
   // For each area, determine whether to apply or remove colors.
-  // We avoid overwriting existing (possibly user-customised) colors unless baseColor is set.
-  const applyActivityBar = !doRemoveColors && colorActivityBar && (!cc['activityBar.background'] || !!baseColor);
+  // User-customized managed colors are preserved unless BaseColor itself changed.
+  const applyActivityBar = !doRemoveColors && colorActivityBar &&
+    (forceApplyManagedColors || !cc['activityBar.background']);
   const removeActivityBar = !doRemoveColors && !colorActivityBar && !!cc['activityBar.background'];
 
-  const applyTitleBar = !doRemoveColors && colorTitleBar && (!cc['titleBar.activeBackground'] || !!baseColor);
+  const applyTitleBar = !doRemoveColors && colorTitleBar &&
+    (forceApplyManagedColors || !cc['titleBar.activeBackground']);
   const removeTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.activeBackground'];
 
   const applyInactiveTitleBar = !doRemoveColors && colorTitleBar && (applyTitleBar || !cc['titleBar.inactiveBackground']);
   const removeInactiveTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.inactiveBackground'];
 
-  const applyStatusBar = !doRemoveColors && colorStatusBar && (!cc['statusBar.background'] || !!baseColor);
+  const applyStatusBar = !doRemoveColors && colorStatusBar &&
+    (forceApplyManagedColors || !cc['statusBar.background']);
   const removeStatusBar = !doRemoveColors && !colorStatusBar && !!cc['statusBar.background'];
 
-  const anyChange = doRemoveColors || applyActivityBar || removeActivityBar ||
+  const anyChange = doRemoveColors || applyBaseColor || applyActivityBar || removeActivityBar ||
     applyTitleBar || removeTitleBar || applyInactiveTitleBar || removeInactiveTitleBar ||
     applyStatusBar || removeStatusBar;
 
@@ -282,6 +416,10 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
         newCc[key] = undefined;
       }
     } else {
+      if (applyBaseColor) {
+        newCc[BASE_COLOR_KEY] = effectiveBaseColor;
+      }
+
       if (applyActivityBar) {
         newCc['activityBar.background'] = sideBarColor.hex();
       } else if (removeActivityBar) {
@@ -326,6 +464,9 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
 
   // Build computedColors map for SettingsFileDeleter
   const computedColors: Record<string, string> = {};
+  if (effectiveBaseColor) {
+    computedColors[BASE_COLOR_KEY] = effectiveBaseColor;
+  }
   if (colorActivityBar) {
     computedColors['activityBar.background'] = sideBarColor.hex();
   }
@@ -353,6 +494,7 @@ export function activate(context: ExtensionContext) {
   }
 
   const workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+  let lastKnownBaseColor = getConfiguredBaseColor();
 
   applyWindowColors(workspaceRoot).then(computedColors => {
     const settingsFileDeleter = new SettingsFileDeleter(workspaceRoot, computedColors);
@@ -369,6 +511,26 @@ export function activate(context: ExtensionContext) {
     })
   );
 
+  // Re-apply colors only when baseColor itself changes.
+  // Changes to managed color keys (like activityBar.background) are intentionally preserved.
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration((event) => {
+      const workbenchColorsChanged = event.affectsConfiguration('workbench.colorCustomizations');
+      if (!workbenchColorsChanged) {
+        return;
+      }
+
+      const nextBaseColor = getConfiguredBaseColor();
+      const baseColorChanged = nextBaseColor !== lastKnownBaseColor;
+      if (baseColorChanged) {
+        lastKnownBaseColor = nextBaseColor;
+        applyWindowColors(workspaceRoot, { forceApplyManagedColors: true });
+      }
+    })
+  );
+
+  registerBaseColorProvider(context);
+
   const openSettingsDisposable = commands.registerCommand('windowColors.openSettings', async () => {
 
     const cfg = workspace.getConfiguration('windowColors');
@@ -376,7 +538,7 @@ export function activate(context: ExtensionContext) {
     const curTitleBar = cfg.get<boolean>('🌈 ColorTitleBar') ?? true;
     const curActivityBar = cfg.get<boolean>('🌈 ColorActivityBar') ?? true;
     const curStatusBar = cfg.get<boolean>('🌈 ColorStatusBar') ?? false;
-    const curBaseColor = cfg.get<string>('🌈 BaseColor') ?? null;
+    const curBaseColor = getConfiguredBaseColor() ?? null;
     const curTheme = cfg.get<string>('🌈 Theme') ?? 'auto';
 
     interface SettingsItem {
@@ -503,8 +665,14 @@ export function activate(context: ExtensionContext) {
       workspace.getConfiguration('workbench').get('colorCustomizations') || {}
     ));
 
-    const applyHex = async (hex: string) => {
-      const { sideBar, titleBar, titleBarText, statusBar, statusBarText } = deriveThemedColors(Color(hex), currentTheme, true);
+    const applyHex = async (inputColor: string) => {
+      const normalized = normalizeBaseColorInput(inputColor);
+      const parsedColor = normalized ? tryParseColor(normalized) : undefined;
+      if (!parsedColor || !normalized) {
+        return false;
+      }
+
+      const { sideBar, titleBar, titleBarText, statusBar, statusBarText } = deriveThemedColors(parsedColor, currentTheme, true);
 
       const newCc = { ...originalCc };
       if (currentColorActivityBar) {
@@ -525,6 +693,7 @@ export function activate(context: ExtensionContext) {
         newCc['statusBar.noFolderForeground'] = statusBarText.hex();
       }
       await workspace.getConfiguration('workbench').update('colorCustomizations', newCc, false);
+      return true;
     };
 
     const qp = window.createQuickPick();
@@ -557,15 +726,19 @@ export function activate(context: ExtensionContext) {
           placeHolder: '#c0392b',
         });
         if (!input) { return; }
-        hexValue = input.trim();
-        try {
-          await applyHex(hexValue);
-        } catch {
+        const normalizedInput = normalizeBaseColorInput(input);
+        if (!normalizedInput || !(await applyHex(normalizedInput))) {
+          window.showErrorMessage('Invalid color. Use hex like #98ffd4 or 98ffd4.');
           return;
         }
+        hexValue = normalizedInput;
       }
 
-      await workspace.getConfiguration('windowColors').update('🌈 BaseColor', hexValue === null ? undefined : hexValue, false);
+      const persistedCc = JSON.parse(JSON.stringify(
+        workspace.getConfiguration('workbench').get('colorCustomizations') || {}
+      ));
+      persistedCc[BASE_COLOR_KEY] = hexValue === null ? undefined : hexValue;
+      await workspace.getConfiguration('workbench').update('colorCustomizations', persistedCc, false);
     });
 
     qp.onDidHide(() => {

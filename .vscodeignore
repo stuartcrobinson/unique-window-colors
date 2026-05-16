@@ -7,3 +7,7 @@ src/**
 tsconfig.json
 vsc-extension-quickstart.md
 tslint.json
+.claude/**
+color-preview.html
+generate_palettes.py
+notes.txt

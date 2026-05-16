@@ -2,7 +2,7 @@ import * as Color from 'color';
 import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const randomSeed = require('random-seed');
-import { ExtensionContext, workspace, WorkspaceFolder, commands, window, ColorThemeKind } from 'vscode';
+import { ConfigurationTarget, ExtensionContext, workspace, WorkspaceFolder, commands, window, ColorThemeKind } from 'vscode';
 
 const MANAGED_COLOR_KEYS = [
   'activityBar.background',
@@ -27,9 +27,9 @@ const BASE_COLORS = [
   // Browns & Oranges
   { emoji: '🟫🟫🟫', name: 'Brown',       hex: '#6d4c41' },
   { emoji: '🟫🟥🟥', name: 'Maroon',      hex: '#5c2020' },
-  { emoji: '🟧🟧🟧', name: 'Orange',      hex: '#e67e22' },
-  { emoji: '🟧🟧🟥', name: 'Rust',        hex: '#c0410a' },
-  { emoji: '🟧🟧🟫', name: 'Ember',       hex: '#c46210' },
+  { emoji: '🟧🟧🟧', name: 'Orange',      hex: '#d88000' },
+  { emoji: '🟧🟧🟥', name: 'Rust',        hex: '#a02c18' },
+  { emoji: '🟧🟧🟫', name: 'Ember',       hex: '#a84808' },
   // Yellows & Olives
   { emoji: '🟨🟨🟨', name: 'Yellow',      hex: '#f1c40f' },
   { emoji: '🟩🟨🟫', name: 'Olive',       hex: '#6b6b15' },
@@ -88,6 +88,9 @@ function deriveThemedColors(rawColor: Color, theme: string | undefined, respectE
   const hue = rawColor.hue();
   const yellowish = hue >= 40 && hue <= 70;
   const achromatic = rawColor.saturationl() < 5;
+  // Orange-to-red hues (8–40°) need a higher luminosity floor than other colors —
+  // at lum 0.02 they become indistinguishable from dark brown.
+  const orangish = !achromatic && hue >= 8 && hue < 40;
   // Achromatic tiers: Gray (mid) gets darkest in dark mode,
   // White (light) gets a higher floor so it reads as lighter gray.
   // Black keeps its identity regardless of theme.
@@ -95,8 +98,8 @@ function deriveThemedColors(rawColor: Color, theme: string | undefined, respectE
   const whitish = achromatic && rawColor.luminosity() >= 0.5;
 
   // Dark-mode luminosity ranges (reused by light mode for the sidebar)
-  const dkMin = whitish ? 0.03 : grayish ? 0.008 : yellowish ? 0.04 : 0.02;
-  const dkMax = whitish ? 0.045 : grayish ? 0.013 : yellowish ? 0.055 : 0.027;
+  const dkMin = whitish ? 0.03 : grayish ? 0.008 : yellowish ? 0.05 : orangish ? 0.08 : 0.02;
+  const dkMax = whitish ? 0.045 : grayish ? 0.013 : yellowish ? 0.07 : orangish ? 0.11 : 0.027;
 
   if (theme === 'dark') {
     const sideBar = respectExtremes && rawColor.luminosity() < dkMin
@@ -170,7 +173,7 @@ export class SettingsFileDeleter {
     const settingsFileJson = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
     const cc = { ...(workspace.getConfiguration('workbench').get('colorCustomizations') as Record<string, string> || {}) };
 
-    const deleteSettingsFileUponExit = workspace.getConfiguration('windowColors').get<boolean>('🌈 DeleteSettingsFileUponExit') ?? false;
+    const deleteSettingsFileUponExit = workspace.getConfiguration('windowColors').get<boolean>('deleteSettingsFileUponExit') ?? false;
 
     if (deleteSettingsFileUponExit) {
       fs.unlinkSync(settingsFile);
@@ -197,7 +200,7 @@ export class SettingsFileDeleter {
 
 async function applyWindowColors(workspaceRoot: string): Promise<Record<string, string>> {
 
-  const neverColor = workspace.getConfiguration('windowColors').get<boolean>('🌈 NeverColorThisWindow') ?? false;
+  const neverColor = workspace.getConfiguration('windowColors').get<boolean>('neverColorThisWindow') ?? false;
   if (neverColor) {
     // Strip any managed colors that may already be present, then bail out.
     const cc = { ...(workspace.getConfiguration('workbench').get('colorCustomizations') as Record<string, string> || {}) };
@@ -214,14 +217,14 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
     return {};
   }
 
-  const extensionTheme = resolveTheme(workspace.getConfiguration('windowColors').get<string>('🌈 Theme'));
-  let baseColor = workspace.getConfiguration('windowColors').get<string>('🌈 BaseColor');
+  const extensionTheme = resolveTheme(workspace.getConfiguration('windowColors').get<string>('theme'));
+  let baseColor = workspace.getConfiguration('windowColors').get<string>('baseColor');
   if (baseColor) {
     baseColor = baseColor.toLowerCase().trim();
   }
-  const colorTitleBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorTitleBar') ?? true;
-  const colorActivityBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorActivityBar') ?? true;
-  const colorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('🌈 ColorStatusBar') ?? false;
+  const colorTitleBar = workspace.getConfiguration('windowColors').get<boolean>('colorTitleBar') ?? true;
+  const colorActivityBar = workspace.getConfiguration('windowColors').get<boolean>('colorActivityBar') ?? true;
+  const colorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('colorStatusBar') ?? true;
 
   // Retain initial unrelated colorCustomizations
   const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations') || {}));
@@ -346,6 +349,71 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
   return computedColors;
 }
 
+// Mapping from old emoji-prefixed setting keys to new camelCase keys.
+// Used to migrate settings from versions <= 1.2.4.
+const SETTINGS_MIGRATIONS: [string, string][] = [
+  ['🌈 Theme', 'theme'],
+  ['🌈 DeleteSettingsFileUponExit', 'deleteSettingsFileUponExit'],
+  ['🌈 BaseColor', 'baseColor'],
+  ['🌈 ColorTitleBar', 'colorTitleBar'],
+  ['🌈 ColorActivityBar', 'colorActivityBar'],
+  ['🌈 ColorStatusBar', 'colorStatusBar'],
+  ['🌈 NeverColorThisWindow', 'neverColorThisWindow'],
+];
+
+/**
+ * Migrate old emoji-prefixed settings (e.g. "windowColors.🌈 Theme") to new
+ * camelCase keys (e.g. "windowColors.theme").
+ *
+ * Workspace settings are migrated via direct file I/O (reliable regardless of
+ * whether VS Code still recognises the old keys).  User/global settings are
+ * migrated through the configuration API on a best-effort basis.
+ */
+async function migrateOldSettings(workspaceRoot: string): Promise<void> {
+  // --- Workspace settings: direct file manipulation (most reliable) ---
+  const settingsFile = workspaceRoot + '/.vscode/settings.json';
+  if (fs.existsSync(settingsFile)) {
+    try {
+      const content: Record<string, unknown> = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+      let changed = false;
+
+      for (const [oldKey, newKey] of SETTINGS_MIGRATIONS) {
+        const oldFull = `windowColors.${oldKey}`;
+        const newFull = `windowColors.${newKey}`;
+
+        if (oldFull in content) {
+          // Only copy if the new key doesn't already have a value
+          if (!(newFull in content)) {
+            content[newFull] = content[oldFull];
+          }
+          delete content[oldFull];
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        fs.writeFileSync(settingsFile, JSON.stringify(content, null, 2) + '\n');
+      }
+    } catch { /* malformed JSON or permission error — skip */ }
+  }
+
+  // --- User (global) settings: best-effort via configuration API ---
+  const cfg = workspace.getConfiguration('windowColors');
+  for (const [oldKey, newKey] of SETTINGS_MIGRATIONS) {
+    try {
+      const old = cfg.inspect(oldKey);
+      if (old?.globalValue !== undefined) {
+        const cur = cfg.inspect(newKey);
+        if (cur?.globalValue === undefined) {
+          await cfg.update(newKey, old.globalValue, ConfigurationTarget.Global);
+        }
+        // Try to remove the old key (may silently fail for unregistered keys)
+        try { await cfg.update(oldKey, undefined, ConfigurationTarget.Global); } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+  }
+}
+
 export function activate(context: ExtensionContext) {
 
   if (!workspace.workspaceFolders) {
@@ -354,15 +422,39 @@ export function activate(context: ExtensionContext) {
 
   const workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
 
-  applyWindowColors(workspaceRoot).then(computedColors => {
+  // Migrate old emoji-prefixed settings before applying colors
+  migrateOldSettings(workspaceRoot).then(() => applyWindowColors(workspaceRoot)).then(computedColors => {
     const settingsFileDeleter = new SettingsFileDeleter(workspaceRoot, computedColors);
     context.subscriptions.push(settingsFileDeleter);
   });
 
+  // One-time update notice for users migrating from the old emoji-key versions
+  const noticeKey = 'shownUpdateNotice__1_2_9_feb25_4';
+  const paletteKey = process.platform === 'darwin' ? 'Cmd+Shift+P' : 'Ctrl+Shift+P';
+  const showUpdateNotice = () => {
+    window.showInformationMessage(
+      `🌈 Window Colors was updated with settings changes. If your colors look wrong, use "Reset Colors" to fix them. You can also hand-pick a color with "Set Base Color". To run these anytime: ${paletteKey} → "Window Colors".`,
+      'Reset Colors',
+      'Set Base Color',
+    ).then(async choice => {
+      if (choice === 'Reset Colors') {
+        await commands.executeCommand('windowColors.resetColors');
+        showUpdateNotice();
+      } else if (choice === 'Set Base Color') {
+        await commands.executeCommand('windowColors.pickBaseColor');
+        showUpdateNotice();
+      }
+    });
+  };
+  if (!context.globalState.get<boolean>(noticeKey)) {
+    context.globalState.update(noticeKey, true);
+    showUpdateNotice();
+  }
+
   // Re-apply colors when VS Code's color theme changes (matters when Theme is "auto")
   context.subscriptions.push(
     window.onDidChangeActiveColorTheme(() => {
-      const themeSetting = workspace.getConfiguration('windowColors').get<string>('🌈 Theme');
+      const themeSetting = workspace.getConfiguration('windowColors').get<string>('theme');
       if (!themeSetting || themeSetting === 'auto') {
         applyWindowColors(workspaceRoot);
       }
@@ -372,12 +464,12 @@ export function activate(context: ExtensionContext) {
   const openSettingsDisposable = commands.registerCommand('windowColors.openSettings', async () => {
 
     const cfg = workspace.getConfiguration('windowColors');
-    const curNeverColor = cfg.get<boolean>('🌈 NeverColorThisWindow') ?? false;
-    const curTitleBar = cfg.get<boolean>('🌈 ColorTitleBar') ?? true;
-    const curActivityBar = cfg.get<boolean>('🌈 ColorActivityBar') ?? true;
-    const curStatusBar = cfg.get<boolean>('🌈 ColorStatusBar') ?? false;
-    const curBaseColor = cfg.get<string>('🌈 BaseColor') ?? null;
-    const curTheme = cfg.get<string>('🌈 Theme') ?? 'auto';
+    const curNeverColor = cfg.get<boolean>('neverColorThisWindow') ?? false;
+    const curTitleBar = cfg.get<boolean>('colorTitleBar') ?? true;
+    const curActivityBar = cfg.get<boolean>('colorActivityBar') ?? true;
+    const curStatusBar = cfg.get<boolean>('colorStatusBar') ?? true;
+    const curBaseColor = cfg.get<string>('baseColor') ?? null;
+    const curTheme = cfg.get<string>('theme') ?? 'auto';
 
     interface SettingsItem {
       label: string;
@@ -424,6 +516,12 @@ export function activate(context: ExtensionContext) {
         action: 'toggleNeverColor',
       },
       {
+        label: `$(refresh)  Reset Colors in This Window`,
+        description: '',
+        detail: 'Clear base color override and reapply auto-generated colors from scratch',
+        action: 'resetColors',
+      },
+      {
         label: `$(trash)  Remove Colors from This Window`,
         description: '',
         detail: 'Wipe all window color settings and delete .vscode/settings.json if it becomes empty',
@@ -439,19 +537,19 @@ export function activate(context: ExtensionContext) {
     if (!picked) { return; }
 
     if (picked.action === 'toggleTitleBar') {
-      await cfg.update('🌈 ColorTitleBar', !curTitleBar, false);
+      await cfg.update('colorTitleBar', !curTitleBar, false);
       await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'toggleActivityBar') {
-      await cfg.update('🌈 ColorActivityBar', !curActivityBar, false);
+      await cfg.update('colorActivityBar', !curActivityBar, false);
       await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'toggleStatusBar') {
-      await cfg.update('🌈 ColorStatusBar', !curStatusBar, false);
+      await cfg.update('colorStatusBar', !curStatusBar, false);
       await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'toggleNeverColor') {
-      await cfg.update('🌈 NeverColorThisWindow', !curNeverColor, false);
+      await cfg.update('neverColorThisWindow', !curNeverColor, false);
       await applyWindowColors(workspaceRoot);
 
     } else if (picked.action === 'pickColor') {
@@ -466,8 +564,11 @@ export function activate(context: ExtensionContext) {
       ];
       const themePicked = await window.showQuickPick(themeItems, { placeHolder: 'Select theme' });
       if (!themePicked) { return; }
-      await cfg.update('🌈 Theme', themePicked.value, false);
+      await cfg.update('theme', themePicked.value, false);
       await applyWindowColors(workspaceRoot);
+
+    } else if (picked.action === 'resetColors') {
+      commands.executeCommand('windowColors.resetColors');
 
     } else if (picked.action === 'removeColors') {
       commands.executeCommand('windowColors.removeColors');
@@ -476,7 +577,7 @@ export function activate(context: ExtensionContext) {
 
   context.subscriptions.push(openSettingsDisposable);
 
-  const pickColorDisposable = commands.registerCommand('windowColors.pickBaseColor', async () => {
+  const pickColorDisposable = commands.registerCommand('windowColors.pickBaseColor', () => new Promise<void>(resolve => {
 
     const colorMap = new Map<string, string | null>();
     const items: { label: string; description: string }[] = [];
@@ -495,10 +596,10 @@ export function activate(context: ExtensionContext) {
     colorMap.set(customLabel, 'custom');
 
     const cfg = workspace.getConfiguration('windowColors');
-    const currentTheme = resolveTheme(cfg.get<string>('🌈 Theme'));
-    const currentColorTitleBar = cfg.get<boolean>('🌈 ColorTitleBar') ?? true;
-    const currentColorActivityBar = cfg.get<boolean>('🌈 ColorActivityBar') ?? true;
-    const currentColorStatusBar = cfg.get<boolean>('🌈 ColorStatusBar') ?? false;
+    const currentTheme = resolveTheme(cfg.get<string>('theme'));
+    const currentColorTitleBar = cfg.get<boolean>('colorTitleBar') ?? true;
+    const currentColorActivityBar = cfg.get<boolean>('colorActivityBar') ?? true;
+    const currentColorStatusBar = cfg.get<boolean>('colorStatusBar') ?? true;
     const originalCc = JSON.parse(JSON.stringify(
       workspace.getConfiguration('workbench').get('colorCustomizations') || {}
     ));
@@ -531,15 +632,21 @@ export function activate(context: ExtensionContext) {
     qp.items = items;
     qp.placeholder = 'Select a base color for this window';
     let accepted = false;
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-    qp.onDidChangeActive(async (activeItems) => {
-      if (!activeItems.length) { return; }
-      const hex = colorMap.get(activeItems[0].label);
-      if (typeof hex === 'string' && hex !== 'custom') {
-        await applyHex(hex);
-      } else {
-        await workspace.getConfiguration('workbench').update('colorCustomizations', originalCc, false);
-      }
+    qp.onDidChangeActive((activeItems) => {
+      if (debounceTimer) { clearTimeout(debounceTimer); }
+      debounceTimer = setTimeout(async () => {
+        if (!activeItems.length) { return; }
+        const hex = colorMap.get(activeItems[0].label);
+        try {
+          if (typeof hex === 'string' && hex !== 'custom') {
+            await applyHex(hex);
+          } else {
+            await workspace.getConfiguration('workbench').update('colorCustomizations', originalCc, false);
+          }
+        } catch { /* ignore preview errors */ }
+      }, 50);
     });
 
     qp.onDidAccept(async () => {
@@ -565,7 +672,7 @@ export function activate(context: ExtensionContext) {
         }
       }
 
-      await workspace.getConfiguration('windowColors').update('🌈 BaseColor', hexValue === null ? undefined : hexValue, false);
+      await workspace.getConfiguration('windowColors').update('baseColor', hexValue === null ? undefined : hexValue, false);
     });
 
     qp.onDidHide(() => {
@@ -573,12 +680,49 @@ export function activate(context: ExtensionContext) {
         workspace.getConfiguration('workbench').update('colorCustomizations', originalCc, false);
       }
       qp.dispose();
+      resolve();
     });
 
     qp.show();
-  });
+  }));
 
   context.subscriptions.push(pickColorDisposable);
+
+  const resetColorsDisposable = commands.registerCommand('windowColors.resetColors', async () => {
+    const cfg = workspace.getConfiguration('windowColors');
+
+    // If this window is set to never be colored, ask before proceeding
+    const neverColor = cfg.get<boolean>('neverColorThisWindow') ?? false;
+    if (neverColor) {
+      const choice = await window.showWarningMessage(
+        'This window is set to "Never Color This Window". Enable colors and reset?',
+        'Enable & Reset',
+        'Cancel',
+      );
+      if (choice !== 'Enable & Reset') { return; }
+      await cfg.update('neverColorThisWindow', false, false);
+    }
+
+    // Clear base color so auto-generation kicks in
+    const hasBaseColor = cfg.inspect('baseColor')?.workspaceValue !== undefined;
+    if (hasBaseColor) {
+      await cfg.update('baseColor', undefined, false);
+    }
+
+    // Strip all managed color keys so applyWindowColors writes fresh values
+    const cc = { ...(workspace.getConfiguration('workbench').get('colorCustomizations') as Record<string, string> || {}) };
+    for (const key of MANAGED_COLOR_KEYS) {
+      delete cc[key];
+    }
+    await workspace.getConfiguration('workbench').update('colorCustomizations',
+      Object.keys(cc).length > 0 ? cc : undefined, false);
+
+    await applyWindowColors(workspaceRoot);
+    const pk = process.platform === 'darwin' ? 'Cmd+Shift+P' : 'Ctrl+Shift+P';
+    window.showInformationMessage(`Window colors reset. For more options: ${pk} → "Window Colors".`);
+  });
+
+  context.subscriptions.push(resetColorsDisposable);
 
   const removeColorsDisposable = commands.registerCommand('windowColors.removeColors', async () => {
     const settingsFile = workspaceRoot + '/.vscode/settings.json';

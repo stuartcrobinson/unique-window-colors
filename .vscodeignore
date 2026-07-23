@@ -11,3 +11,6 @@ tslint.json
 color-preview.html
 generate_palettes.py
 notes.txt
+tools/**
+palette_preview.html
+HANDOFF_color_v2.md

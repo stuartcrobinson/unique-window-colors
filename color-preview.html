@@ -1,193 +1,4700 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Color Palette Preview — 34 Colors</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  .section {
-    min-height: 100vh;
-    padding: 1.5rem 1.5rem 3rem;
-    display: flex;
-    flex-direction: column;
-  }
-  .section.dark  { background: #1e1e1e; color: #ccc; }
-  .section.light { background: #f0f0f0; color: #333; }
-  h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
-  .dark  h1 { color: #eee; }
-  .light h1 { color: #222; }
-  p.subtitle { font-size: 0.8rem; margin-bottom: 1rem; }
-  .dark  p.subtitle { color: #666; }
-  .light p.subtitle { color: #999; }
-  .palette {
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-    gap: 3px;
-    min-height: 0;
-  }
-  .bar {
-    flex: 1;
-    min-width: 0;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    padding-bottom: 10px;
-    position: relative;
-    cursor: default;
-  }
-  .bar:hover { outline: 2px solid rgba(255,255,255,0.6); outline-offset: -2px; }
-  .bar .label {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-    letter-spacing: 0.2px;
-  }
-  .bar .hex-label {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    font-size: 9px;
-    font-family: monospace;
-    opacity: 0.5;
-    position: absolute;
-    top: 10px;
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window Colors · Shipping preset preview</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #0b0d12;
+      --panel: #141821;
+      --panel-strong: #1b202b;
+      --line: #2a3241;
+      --text: #f3f6fb;
+      --muted: #9ba8bb;
+      --accent: #74c7ec;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 10% -10%, rgba(116, 199, 236, 0.14), transparent 28rem),
+        var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .hero {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 52px 28px 34px;
+    }
+
+    .hero-copy {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+      gap: 40px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 820px;
+      margin-bottom: 18px;
+      font-size: clamp(36px, 5vw, 72px);
+      line-height: 0.98;
+      letter-spacing: -0.045em;
+    }
+
+    .lede {
+      max-width: 800px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .legend {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(20, 24, 33, 0.78);
+    }
+
+    .legend h2 {
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .legend p {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .legend p:last-child { margin-bottom: 0; }
+
+    nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    nav a {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .mode-section {
+      padding: 34px max(28px, calc((100vw - 1540px) / 2 + 28px)) 64px;
+    }
+
+    .mode-section.light {
+      --section-bg: #eef1f5;
+      --card-bg: #ffffff;
+      --card-line: #d8dee8;
+      --section-text: #151923;
+      --section-muted: #5e6878;
+      background: var(--section-bg);
+      color: var(--section-text);
+    }
+
+    .mode-section.dark {
+      --section-bg: #10131a;
+      --card-bg: #171b24;
+      --card-line: #2a3241;
+      --section-text: #f3f6fb;
+      --section-muted: #9ba8bb;
+      background: var(--section-bg);
+      color: var(--section-text);
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 0;
+      font-size: clamp(25px, 3vw, 42px);
+      letter-spacing: -0.035em;
+    }
+
+    .section-heading > p {
+      max-width: 560px;
+      margin-bottom: 2px;
+      color: var(--section-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .preset-card {
+      overflow: hidden;
+      border: 1px solid var(--card-line);
+      border-radius: 14px;
+      background: var(--card-bg);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    .preset-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      min-height: 65px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--card-line);
+    }
+
+    .preset-heading > div {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .emoji {
+      font-size: 17px;
+      letter-spacing: -7px;
+      padding-right: 7px;
+    }
+
+    .preset-heading h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .base-chip {
+      flex: 0 0 auto;
+      padding: 6px 8px;
+      border: 1px solid color-mix(in srgb, var(--base-bg), white 22%);
+      border-radius: 7px;
+      background: var(--base-bg);
+      color: white;
+      font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-shadow: 0 1px 3px black, 0 0 2px black;
+    }
+
+    .roles { display: grid; }
+
+    .role {
+      display: grid;
+      grid-template-columns: minmax(128px, 1.25fr) minmax(104px, 0.75fr);
+      border-bottom: 1px solid var(--card-line);
+    }
+
+    .role:last-child { border-bottom: 0; }
+
+    .swatch {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 52px;
+      padding: 11px 12px;
+      background: var(--role-bg);
+      color: var(--role-fg);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .sample-icon { font-size: 11px; }
+
+    dl {
+      display: grid;
+      align-content: center;
+      gap: 2px;
+      margin: 0;
+      padding: 7px 10px;
+      border-left: 1px solid var(--card-line);
+      font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    dl div {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 5px;
+    }
+
+    dt {
+      color: var(--section-muted);
+      font-weight: 800;
+    }
+
+    dd {
+      margin: 0;
+      color: var(--section-text);
+    }
+
+    .role p {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 6px 11px 7px;
+      border-top: 1px solid var(--card-line);
+      color: var(--section-muted);
+      font-size: 9px;
+      line-height: 1.35;
+    }
+
+    footer {
+      padding: 24px 28px 38px;
+      background: var(--page);
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    code {
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    @media (max-width: 760px) {
+      .hero-copy { grid-template-columns: 1fr; }
+      .section-heading { display: block; }
+      .section-heading > p { margin-top: 12px; }
+      .preset-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
+  <!-- Generated by scripts/generate-color-preview.js. Do not edit by hand. -->
+  <header class="hero">
+    <div class="hero-copy">
+      <div>
+        <p class="eyebrow">Window Colors · shipping implementation</p>
+        <h1>Every preset. Every bar. Exact foregrounds.</h1>
+        <p class="lede">
+          All 34 Set Base Color presets rendered through the extension’s
+          current TypeScript background derivation and foreground contrast logic,
+          in both dark and light modes.
+        </p>
+      </div>
+      <aside class="legend">
+        <h2>How to read this</h2>
+        <p><strong>BG</strong> and <strong>FG</strong> are the exact emitted hex values.</p>
+        <p><strong>AA</strong> is the WCAG contrast ratio for that pair; every opaque pair must be at least 4.5:1.</p>
+        <p>Status normal, debugging, and no-folder roles share one generated pair for a newly selected preset.</p>
+      </aside>
+    </div>
+    <nav aria-label="Preview mode">
+      <a href="#dark">Dark mode</a>
+      <a href="#light">Light mode</a>
+    </nav>
+  </header>
 
-<div class="section dark">
-  <h1>Dark Mode — 34 Colors</h1>
-  <p class="subtitle">24 algorithmically generated + 9 pure emoji colors. Sorted by perceptual hue (OKLab).</p>
-  <div class="palette" id="dark-palette"></div>
-</div>
+  <section class="mode-section dark" id="dark">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">dark theme</p>
+        <h2>Dark mode · 34 presets</h2>
+      </div>
+      <p>Exact output after selecting each preset while Window Colors is using its dark theme.</p>
+    </div>
+    <div class="preset-grid">
 
-<div class="section light">
-  <h1>Light Mode — 34 Colors</h1>
-  <p class="subtitle">24 algorithmically generated + 9 pure emoji colors. Sorted by perceptual hue (OKLab).</p>
-  <div class="palette" id="light-palette"></div>
-</div>
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟥🟥</span>
+            <h3>Red</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #c0392b">#c0392b</span>
+        </header>
+        <div class="roles">
 
-<script>
-// Each entry: [dark_hex, light_hex, emoji (3 squares), name]
-// 25 algorithm-generated colors + 9 pure emoji colors
-const PALETTE = [
-  // ── Reds & Pinks ──────────────────────────────────────────────
-  ["#500707", "#f69292",  "🟥🟥🟥", "Red"],
-  ["#60052e", "#f79eb9",  "🟥🟥🟪", "Crimson"],
-  ["#4a0404", "#f4877b",  "🟥🟥⬛", "Blood"],
-  ["#3f032a", "#f47bab",  "🟥🟪🟪", "Berry"],
+          <div class="role">
+            <div class="swatch" style="--role-bg: #551913; --role-fg: #FEFCFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#551913</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFC</dd></div>
+              <div><dt>AA</dt><dd>13.39:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
 
-  // ── Browns & Oranges ──────────────────────────────────────────
-  ["#3f200d", "#ebbda2",  "🟫🟫🟫", "Brown"],
-  ["#2b1717", "#d19f9f",  "🟫🟥🟥", "Maroon"],
-  ["#502907", "#f6c192",  "🟧🟧🟧", "Orange"],
-  ["#601305", "#e1c6c1",  "🟧🟧🟥", "Rust"],
-  ["#6b2e06", "#f4ab7b",  "🟧🟧🟫", "Ember"],
+          <div class="role">
+            <div class="swatch" style="--role-bg: #77231B; --role-fg: #FDF8F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#77231B</dd></div>
+              <div><dt>FG</dt><dd>#FDF8F8</dd></div>
+              <div><dt>AA</dt><dd>9.78:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
 
-  // ── Yellows & Olives ──────────────────────────────────────────
-  ["#706a0a", "#f6f392",  "🟨🟨🟨", "Yellow"],
-["#584d0d", "#f8e9aa",  "🟩🟨🟫", "Olive"],
-  ["#6b6b06", "#b8e28d",  "🟨🟨🟩", "Chartreuse"],
+          <div class="role">
+            <div class="swatch" style="--role-bg: #551913; --role-fg: #FEFCFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#551913</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFC</dd></div>
+              <div><dt>AA</dt><dd>13.39:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
 
-  // ── Greens ────────────────────────────────────────────────────
-  ["#075007", "#92f692",  "🟩🟩🟩", "Green"],
-  ["#386b06", "#cdf8aa",  "🟩🟩🟨", "Lime"],
-  ["#011501", "#88b888",  "🟩🟩⬛", "Forest"],
-  ["#172b17", "#7bf47b",  "🟩⬜⬛", "Sage"],
-  ["#064a0e", "#80e898",  "🟩🟩🟦", "Emerald"],
+          <div class="role">
+            <div class="swatch" style="--role-bg: #551913; --role-fg: #FEFCFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#551913</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFC</dd></div>
+              <div><dt>AA</dt><dd>13.39:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
 
-  // ── Teals ─────────────────────────────────────────────────────
-  ["#102e24", "#60d8b0",  "🟦🟩🟩", "Juniper"],
-  ["#066b6b", "#aae5f8",  "🟦🟦🟩", "Teal"],
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟥🟪</span>
+            <h3>Crimson</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #9b1b5a">#9b1b5a</span>
+        </header>
+        <div class="roles">
 
-  // ── Blues ─────────────────────────────────────────────────────
-  ["#06516b", "#7bd6f4",  "🟦🟦🟫", "Petrol"],
-  ["#010f20", "#7898b0",  "🟦🟦⬛", "Navy"],
-  ["#070750", "#9292f6",  "🟦🟦🟦", "Blue"],
-  ["#06296b", "#87b3f5",  "🟦⬛🟦", "Cobalt"],
-  ["#06066b", "#8797f5",  "🟦🟦🟪", "Ultramarine"],
-  ["#0d0d35", "#7b7bf4",  "⬛⬛🟦", "Midnight"],
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580F33; --role-fg: #FEFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580F33</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.43:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
 
-  // ── Purples ───────────────────────────────────────────────────
-  ["#1e1c49", "#b88de2",  "🟦🟪🟪", "Indigo"],
-  ["#2b0750", "#c492f6",  "🟪🟪🟪", "Purple"],
-  ["#4c066b", "#c0a7d5",  "🟪🟪🟦", "Violet"],
-  ["#250638", "#d860d8",  "🟪🟪⬛", "Plum"],
-  ["#492749", "#f2b0ef",  "🟪⬜⬛", "Mauve"],
-  ["#6b066b", "#e28dd6",  "🟪🟪🟥", "Magenta"],
+          <div class="role">
+            <div class="swatch" style="--role-bg: #7C1648; --role-fg: #FEFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#7C1648</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFD</dd></div>
+              <div><dt>AA</dt><dd>9.95:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
 
-  // ── Achromatics ───────────────────────────────────────────────
-  ["#080808", "#b8b8b8",  "⬛⬛⬛", "Black"],
-  ["#1c1c1c", "#dadada",  "⬜⬛⬜", "Gray"],
-  ["#323232", "#f0f0f0",  "⬜⬜⬜", "White"],
-];
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580F33; --role-fg: #FEFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580F33</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.43:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
 
-// Sort by OKLab hue (perceptually uniform), achromatics last
-function hexToOklabHue(hex) {
-  let r = parseInt(hex.slice(1,3),16)/255;
-  let g = parseInt(hex.slice(3,5),16)/255;
-  let b = parseInt(hex.slice(5,7),16)/255;
-  const lin = x => x <= 0.04045 ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4);
-  r = lin(r); g = lin(g); b = lin(b);
-  const l_ = Math.cbrt(0.4122214708*r + 0.5363325363*g + 0.0514459929*b);
-  const m_ = Math.cbrt(0.2119034982*r + 0.6806995451*g + 0.1073969566*b);
-  const s_ = Math.cbrt(0.0883024619*r + 0.2817188376*g + 0.6299787005*b);
-  const a  =  1.9779984951*l_ - 2.4285922050*m_ + 0.4505937099*s_;
-  const bv =  0.0259040371*l_ + 0.7827717662*m_ - 0.8086757660*s_;
-  const chroma = Math.sqrt(a*a + bv*bv);
-  if (chroma < 0.015) return 999; // achromatic → sort to end
-  return (Math.atan2(bv, a) * 180 / Math.PI + 360) % 360;
-}
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580F33; --role-fg: #FEFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580F33</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.43:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
 
-const sorted = PALETTE.slice().sort((a, b) => {
-  const ha = hexToOklabHue(a[0]);
-  const hb = hexToOklabHue(b[0]);
-  return ha - hb;
-});
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟥⬛</span>
+            <h3>Blood</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #7a0808">#7a0808</span>
+        </header>
+        <div class="roles">
 
-function luminance(hex) {
-  const [r,g,b] = [hex.slice(1,3), hex.slice(3,5), hex.slice(5,7)].map(c => {
-    const v = parseInt(c,16)/255;
-    return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
-  });
-  return 0.2126*r + 0.7152*g + 0.0722*b;
-}
+          <div class="role">
+            <div class="swatch" style="--role-bg: #610606; --role-fg: #FFFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#610606</dd></div>
+              <div><dt>FG</dt><dd>#FFFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
 
-function textColor(bg) {
-  return luminance(bg) > 0.12 ? '#000000bb' : '#ffffffbb';
-}
+          <div class="role">
+            <div class="swatch" style="--role-bg: #880909; --role-fg: #FFF8F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#880909</dd></div>
+              <div><dt>FG</dt><dd>#FFF8F8</dd></div>
+              <div><dt>AA</dt><dd>9.59:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
 
-function renderPalette(containerId, colorIndex) {
-  const container = document.getElementById(containerId);
-  sorted.forEach(([darkHex, lightHex, emoji, name]) => {
-    const hex = colorIndex === 0 ? darkHex : lightHex;
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    bar.style.background = hex;
-    bar.style.color = textColor(hex);
+          <div class="role">
+            <div class="swatch" style="--role-bg: #610606; --role-fg: #FFFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#610606</dd></div>
+              <div><dt>FG</dt><dd>#FFFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
 
-    const label = document.createElement('span');
-    label.className = 'label';
-    label.textContent = `${emoji} ${name}`;
-    bar.appendChild(label);
+          <div class="role">
+            <div class="swatch" style="--role-bg: #610606; --role-fg: #FFFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#610606</dd></div>
+              <div><dt>FG</dt><dd>#FFFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
 
-    const hexLabel = document.createElement('span');
-    hexLabel.className = 'hex-label';
-    hexLabel.textContent = hex;
-    bar.appendChild(hexLabel);
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟪🟪</span>
+            <h3>Berry</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6b1048">#6b1048</span>
+        </header>
+        <div class="roles">
 
-    container.appendChild(bar);
-  });
-}
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580D3B; --role-fg: #FFFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580D3B</dd></div>
+              <div><dt>FG</dt><dd>#FFFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
 
-renderPalette('dark-palette',  0);
-renderPalette('light-palette', 1);
-</script>
+          <div class="role">
+            <div class="swatch" style="--role-bg: #7B1252; --role-fg: #FEFAFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#7B1252</dd></div>
+              <div><dt>FG</dt><dd>#FEFAFC</dd></div>
+              <div><dt>AA</dt><dd>9.90:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580D3B; --role-fg: #FFFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580D3B</dd></div>
+              <div><dt>FG</dt><dd>#FFFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580D3B; --role-fg: #FFFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580D3B</dd></div>
+              <div><dt>FG</dt><dd>#FFFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟫🟫🟫</span>
+            <h3>Brown</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6d4c41">#6d4c41</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6D4C41; --role-fg: #FBF9F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6D4C41</dd></div>
+              <div><dt>FG</dt><dd>#FBF9F8</dd></div>
+              <div><dt>AA</dt><dd>7.25:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #996A5B; --role-fg: #FFFFFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#996A5B</dd></div>
+              <div><dt>FG</dt><dd>#FFFFFF</dd></div>
+              <div><dt>AA</dt><dd>4.60:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6D4C41; --role-fg: #FBF9F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6D4C41</dd></div>
+              <div><dt>FG</dt><dd>#FBF9F8</dd></div>
+              <div><dt>AA</dt><dd>7.25:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6D4C41; --role-fg: #FBF9F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6D4C41</dd></div>
+              <div><dt>FG</dt><dd>#FBF9F8</dd></div>
+              <div><dt>AA</dt><dd>7.25:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟫🟥🟥</span>
+            <h3>Maroon</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #5c2020">#5c2020</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #511C1C; --role-fg: #FEFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#511C1C</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.31:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #712727; --role-fg: #FDF9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#712727</dd></div>
+              <div><dt>FG</dt><dd>#FDF9F9</dd></div>
+              <div><dt>AA</dt><dd>9.94:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #511C1C; --role-fg: #FEFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#511C1C</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.31:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #511C1C; --role-fg: #FEFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#511C1C</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.31:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟧🟧🟧</span>
+            <h3>Orange</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #d88000">#d88000</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #875000; --role-fg: #FFFAF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#875000</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF2</dd></div>
+              <div><dt>AA</dt><dd>6.36:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #BD7000; --role-fg: #261600">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#BD7000</dd></div>
+              <div><dt>FG</dt><dd>#261600</dd></div>
+              <div><dt>AA</dt><dd>4.58:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #875000; --role-fg: #FFFAF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#875000</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF2</dd></div>
+              <div><dt>AA</dt><dd>6.36:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #875000; --role-fg: #FFFAF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#875000</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF2</dd></div>
+              <div><dt>AA</dt><dd>6.36:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟧🟧🟥</span>
+            <h3>Rust</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a02c18">#a02c18</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #A02C18; --role-fg: #FEF9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#A02C18</dd></div>
+              <div><dt>FG</dt><dd>#FEF9F9</dd></div>
+              <div><dt>AA</dt><dd>7.02:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #DE3F24; --role-fg: #000000">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#DE3F24</dd></div>
+              <div><dt>FG</dt><dd>#000000</dd></div>
+              <div><dt>AA</dt><dd>4.84:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #A02C18; --role-fg: #FEF9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#A02C18</dd></div>
+              <div><dt>FG</dt><dd>#FEF9F9</dd></div>
+              <div><dt>AA</dt><dd>7.02:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #A02C18; --role-fg: #FEF9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#A02C18</dd></div>
+              <div><dt>FG</dt><dd>#FEF9F9</dd></div>
+              <div><dt>AA</dt><dd>7.02:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟧🟧🟫</span>
+            <h3>Ember</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a84808">#a84808</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #9B4207; --role-fg: #FFF8F4">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#9B4207</dd></div>
+              <div><dt>FG</dt><dd>#FFF8F4</dd></div>
+              <div><dt>AA</dt><dd>6.29:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #D95D0A; --role-fg: #2C1302">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#D95D0A</dd></div>
+              <div><dt>FG</dt><dd>#2C1302</dd></div>
+              <div><dt>AA</dt><dd>4.60:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #9B4207; --role-fg: #FFF8F4">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#9B4207</dd></div>
+              <div><dt>FG</dt><dd>#FFF8F4</dd></div>
+              <div><dt>AA</dt><dd>6.29:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #9B4207; --role-fg: #FFF8F4">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#9B4207</dd></div>
+              <div><dt>FG</dt><dd>#FFF8F4</dd></div>
+              <div><dt>AA</dt><dd>6.29:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟨🟨🟨</span>
+            <h3>Yellow</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #f1c40f">#f1c40f</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #594905; --role-fg: #FEFBEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#594905</dd></div>
+              <div><dt>FG</dt><dd>#FEFBEC</dd></div>
+              <div><dt>AA</dt><dd>8.50:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #7D6607; --role-fg: #FEFBED">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#7D6607</dd></div>
+              <div><dt>FG</dt><dd>#FEFBED</dd></div>
+              <div><dt>AA</dt><dd>5.36:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #594905; --role-fg: #FEFBEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#594905</dd></div>
+              <div><dt>FG</dt><dd>#FEFBEC</dd></div>
+              <div><dt>AA</dt><dd>8.50:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #594905; --role-fg: #FEFBEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#594905</dd></div>
+              <div><dt>FG</dt><dd>#FEFBEC</dd></div>
+              <div><dt>AA</dt><dd>8.50:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟨🟫</span>
+            <h3>Olive</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6b6b15">#6b6b15</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4D4D0F; --role-fg: #FBFBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4D4D0F</dd></div>
+              <div><dt>FG</dt><dd>#FBFBEA</dd></div>
+              <div><dt>AA</dt><dd>8.43:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6C6C15; --role-fg: #FBFBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6C6C15</dd></div>
+              <div><dt>FG</dt><dd>#FBFBEA</dd></div>
+              <div><dt>AA</dt><dd>5.30:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4D4D0F; --role-fg: #FBFBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4D4D0F</dd></div>
+              <div><dt>FG</dt><dd>#FBFBEA</dd></div>
+              <div><dt>AA</dt><dd>8.43:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4D4D0F; --role-fg: #FBFBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4D4D0F</dd></div>
+              <div><dt>FG</dt><dd>#FBFBEA</dd></div>
+              <div><dt>AA</dt><dd>8.43:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟨🟨🟩</span>
+            <h3>Chartreuse</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a3b820">#a3b820</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #464F0E; --role-fg: #F9FBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#464F0E</dd></div>
+              <div><dt>FG</dt><dd>#F9FBEA</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #626F13; --role-fg: #FAFCEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#626F13</dd></div>
+              <div><dt>FG</dt><dd>#FAFCEC</dd></div>
+              <div><dt>AA</dt><dd>5.31:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #464F0E; --role-fg: #F9FBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#464F0E</dd></div>
+              <div><dt>FG</dt><dd>#F9FBEA</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #464F0E; --role-fg: #F9FBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#464F0E</dd></div>
+              <div><dt>FG</dt><dd>#F9FBEA</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩🟩</span>
+            <h3>Green</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #27ae60">#27ae60</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0C351D; --role-fg: #F3FCF7">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0C351D</dd></div>
+              <div><dt>FG</dt><dd>#F3FCF7</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #114A29; --role-fg: #F2FCF6">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#114A29</dd></div>
+              <div><dt>FG</dt><dd>#F2FCF6</dd></div>
+              <div><dt>AA</dt><dd>9.84:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0C351D; --role-fg: #F3FCF7">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0C351D</dd></div>
+              <div><dt>FG</dt><dd>#F3FCF7</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0C351D; --role-fg: #F3FCF7">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0C351D</dd></div>
+              <div><dt>FG</dt><dd>#F3FCF7</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩🟨</span>
+            <h3>Lime</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6ba00d">#6ba00d</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #223204; --role-fg: #F5FDE5">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#223204</dd></div>
+              <div><dt>FG</dt><dd>#F5FDE5</dd></div>
+              <div><dt>AA</dt><dd>13.15:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2F4706; --role-fg: #F5FDE8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2F4706</dd></div>
+              <div><dt>FG</dt><dd>#F5FDE8</dd></div>
+              <div><dt>AA</dt><dd>9.93:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #223204; --role-fg: #F5FDE5">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#223204</dd></div>
+              <div><dt>FG</dt><dd>#F5FDE5</dd></div>
+              <div><dt>AA</dt><dd>13.15:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #223204; --role-fg: #F5FDE5">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#223204</dd></div>
+              <div><dt>FG</dt><dd>#F5FDE5</dd></div>
+              <div><dt>AA</dt><dd>13.15:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩⬛</span>
+            <h3>Forest</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #022002">#022002</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #022002; --role-fg: #F0FEF0">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#022002</dd></div>
+              <div><dt>FG</dt><dd>#F0FEF0</dd></div>
+              <div><dt>AA</dt><dd>16.64:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #032D03; --role-fg: #EFFEEF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#032D03</dd></div>
+              <div><dt>FG</dt><dd>#EFFEEF</dd></div>
+              <div><dt>AA</dt><dd>14.55:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #022002; --role-fg: #F0FEF0">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#022002</dd></div>
+              <div><dt>FG</dt><dd>#F0FEF0</dd></div>
+              <div><dt>AA</dt><dd>16.64:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #022002; --role-fg: #F0FEF0">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#022002</dd></div>
+              <div><dt>FG</dt><dd>#F0FEF0</dd></div>
+              <div><dt>AA</dt><dd>16.64:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩⬜⬛</span>
+            <h3>Sage</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #4a7a4a">#4a7a4a</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1F321F; --role-fg: #F9FBF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1F321F</dd></div>
+              <div><dt>FG</dt><dd>#F9FBF9</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2B472B; --role-fg: #FAFCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2B472B</dd></div>
+              <div><dt>FG</dt><dd>#FAFCFA</dd></div>
+              <div><dt>AA</dt><dd>9.99:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1F321F; --role-fg: #F9FBF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1F321F</dd></div>
+              <div><dt>FG</dt><dd>#F9FBF9</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1F321F; --role-fg: #F9FBF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1F321F</dd></div>
+              <div><dt>FG</dt><dd>#F9FBF9</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩🟦</span>
+            <h3>Emerald</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #10b035">#10b035</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053610; --role-fg: #EEFDF1">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053610</dd></div>
+              <div><dt>FG</dt><dd>#EEFDF1</dd></div>
+              <div><dt>AA</dt><dd>12.94:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #074B17; --role-fg: #EEFDF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#074B17</dd></div>
+              <div><dt>FG</dt><dd>#EEFDF2</dd></div>
+              <div><dt>AA</dt><dd>9.85:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053610; --role-fg: #EEFDF1">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053610</dd></div>
+              <div><dt>FG</dt><dd>#EEFDF1</dd></div>
+              <div><dt>AA</dt><dd>12.94:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053610; --role-fg: #EEFDF1">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053610</dd></div>
+              <div><dt>FG</dt><dd>#EEFDF1</dd></div>
+              <div><dt>AA</dt><dd>12.94:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟩🟩</span>
+            <h3>Juniper</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #18503e">#18503e</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3328; --role-fg: #F5FCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3328</dd></div>
+              <div><dt>FG</dt><dd>#F5FCFA</dd></div>
+              <div><dt>AA</dt><dd>13.24:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #164838; --role-fg: #F4FCF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#164838</dd></div>
+              <div><dt>FG</dt><dd>#F4FCF9</dd></div>
+              <div><dt>AA</dt><dd>9.98:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3328; --role-fg: #F5FCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3328</dd></div>
+              <div><dt>FG</dt><dd>#F5FCFA</dd></div>
+              <div><dt>AA</dt><dd>13.24:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3328; --role-fg: #F5FCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3328</dd></div>
+              <div><dt>FG</dt><dd>#F5FCFA</dd></div>
+              <div><dt>AA</dt><dd>13.24:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟩</span>
+            <h3>Teal</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #0a9e9e">#0a9e9e</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #033333; --role-fg: #E9FEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#033333</dd></div>
+              <div><dt>FG</dt><dd>#E9FEFE</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #054848; --role-fg: #ECFEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#054848</dd></div>
+              <div><dt>FG</dt><dd>#ECFEFE</dd></div>
+              <div><dt>AA</dt><dd>9.95:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #033333; --role-fg: #E9FEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#033333</dd></div>
+              <div><dt>FG</dt><dd>#E9FEFE</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #033333; --role-fg: #E9FEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#033333</dd></div>
+              <div><dt>FG</dt><dd>#E9FEFE</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟫</span>
+            <h3>Petrol</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #0c7ba0">#0c7ba0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053241; --role-fg: #F3FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053241</dd></div>
+              <div><dt>FG</dt><dd>#F3FBFE</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #07465B; --role-fg: #F2FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#07465B</dd></div>
+              <div><dt>FG</dt><dd>#F2FBFE</dd></div>
+              <div><dt>AA</dt><dd>9.83:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053241; --role-fg: #F3FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053241</dd></div>
+              <div><dt>FG</dt><dd>#F3FBFE</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053241; --role-fg: #F3FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053241</dd></div>
+              <div><dt>FG</dt><dd>#F3FBFE</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦⬛</span>
+            <h3>Navy</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #031a30">#031a30</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #031A30; --role-fg: #F8FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#031A30</dd></div>
+              <div><dt>FG</dt><dd>#F8FCFF</dd></div>
+              <div><dt>AA</dt><dd>17.05:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #042443; --role-fg: #F9FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#042443</dd></div>
+              <div><dt>FG</dt><dd>#F9FCFF</dd></div>
+              <div><dt>AA</dt><dd>15.24:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #031A30; --role-fg: #F8FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#031A30</dd></div>
+              <div><dt>FG</dt><dd>#F8FCFF</dd></div>
+              <div><dt>AA</dt><dd>17.05:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #031A30; --role-fg: #F8FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#031A30</dd></div>
+              <div><dt>FG</dt><dd>#F8FCFF</dd></div>
+              <div><dt>AA</dt><dd>17.05:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟦</span>
+            <h3>Blue</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #2980b9">#2980b9</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3046; --role-fg: #F6FAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3046</dd></div>
+              <div><dt>FG</dt><dd>#F6FAFD</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #164462; --role-fg: #F9FCFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#164462</dd></div>
+              <div><dt>FG</dt><dd>#F9FCFE</dd></div>
+              <div><dt>AA</dt><dd>10.00:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3046; --role-fg: #F6FAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3046</dd></div>
+              <div><dt>FG</dt><dd>#F6FAFD</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3046; --role-fg: #F6FAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3046</dd></div>
+              <div><dt>FG</dt><dd>#F6FAFD</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦⬛🟦</span>
+            <h3>Cobalt</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #1050a0">#1050a0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #092D5A; --role-fg: #F7FAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#092D5A</dd></div>
+              <div><dt>FG</dt><dd>#F7FAFE</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0D3F7E; --role-fg: #F8FAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0D3F7E</dd></div>
+              <div><dt>FG</dt><dd>#F8FAFE</dd></div>
+              <div><dt>AA</dt><dd>9.90:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #092D5A; --role-fg: #F7FAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#092D5A</dd></div>
+              <div><dt>FG</dt><dd>#F7FAFE</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #092D5A; --role-fg: #F7FAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#092D5A</dd></div>
+              <div><dt>FG</dt><dd>#F7FAFE</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟪</span>
+            <h3>Ultramarine</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #1818a0">#1818a0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #15158E; --role-fg: #FCFCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#15158E</dd></div>
+              <div><dt>FG</dt><dd>#FCFCFF</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1E1EC7; --role-fg: #FDFDFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1E1EC7</dd></div>
+              <div><dt>FG</dt><dd>#FDFDFF</dd></div>
+              <div><dt>AA</dt><dd>10.01:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #15158E; --role-fg: #FCFCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#15158E</dd></div>
+              <div><dt>FG</dt><dd>#FCFCFF</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #15158E; --role-fg: #FCFCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#15158E</dd></div>
+              <div><dt>FG</dt><dd>#FCFCFF</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬛⬛🟦</span>
+            <h3>Midnight</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #151540">#151540</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #151540; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#151540</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>16.76:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1D1D5A; --role-fg: #FAFAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1D1D5A</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFD</dd></div>
+              <div><dt>AA</dt><dd>14.65:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #151540; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#151540</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>16.76:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #151540; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#151540</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>16.76:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟪🟪</span>
+            <h3>Indigo</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #3a2a80">#3a2a80</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2E2267; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2E2267</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>13.20:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #412F90; --role-fg: #FDFCFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#412F90</dd></div>
+              <div><dt>FG</dt><dd>#FDFCFE</dd></div>
+              <div><dt>AA</dt><dd>10.09:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2E2267; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2E2267</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>13.20:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2E2267; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2E2267</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>13.20:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪🟪</span>
+            <h3>Purple</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #8e44ad">#8e44ad</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #411F4F; --role-fg: #FDFBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#411F4F</dd></div>
+              <div><dt>FG</dt><dd>#FDFBFD</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #5B2B6F; --role-fg: #FCFAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#5B2B6F</dd></div>
+              <div><dt>FG</dt><dd>#FCFAFD</dd></div>
+              <div><dt>AA</dt><dd>10.02:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #411F4F; --role-fg: #FDFBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#411F4F</dd></div>
+              <div><dt>FG</dt><dd>#FDFBFD</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #411F4F; --role-fg: #FDFBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#411F4F</dd></div>
+              <div><dt>FG</dt><dd>#FDFBFD</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪🟦</span>
+            <h3>Violet</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #7a10a0">#7a10a0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4C0A64; --role-fg: #FDFAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4C0A64</dd></div>
+              <div><dt>FG</dt><dd>#FDFAFE</dd></div>
+              <div><dt>AA</dt><dd>13.22:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6A0E8C; --role-fg: #FDF9FE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6A0E8C</dd></div>
+              <div><dt>FG</dt><dd>#FDF9FE</dd></div>
+              <div><dt>AA</dt><dd>9.81:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4C0A64; --role-fg: #FDFAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4C0A64</dd></div>
+              <div><dt>FG</dt><dd>#FDFAFE</dd></div>
+              <div><dt>AA</dt><dd>13.22:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4C0A64; --role-fg: #FDFAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4C0A64</dd></div>
+              <div><dt>FG</dt><dd>#FDFAFE</dd></div>
+              <div><dt>AA</dt><dd>13.22:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪⬛</span>
+            <h3>Plum</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #400a55">#400a55</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #400A55; --role-fg: #FEFBFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#400A55</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFF</dd></div>
+              <div><dt>AA</dt><dd>14.69:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #5A0E77; --role-fg: #FDFAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#5A0E77</dd></div>
+              <div><dt>FG</dt><dd>#FDFAFE</dd></div>
+              <div><dt>AA</dt><dd>11.50:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #400A55; --role-fg: #FEFBFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#400A55</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFF</dd></div>
+              <div><dt>AA</dt><dd>14.69:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #400A55; --role-fg: #FEFBFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#400A55</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFF</dd></div>
+              <div><dt>AA</dt><dd>14.69:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪⬜⬛</span>
+            <h3>Mauve</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #7a4878">#7a4878</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3E253D; --role-fg: #FCF9FC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3E253D</dd></div>
+              <div><dt>FG</dt><dd>#FCF9FC</dd></div>
+              <div><dt>AA</dt><dd>13.08:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #573356; --role-fg: #FCFBFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#573356</dd></div>
+              <div><dt>FG</dt><dd>#FCFBFC</dd></div>
+              <div><dt>AA</dt><dd>10.11:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3E253D; --role-fg: #FCF9FC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3E253D</dd></div>
+              <div><dt>FG</dt><dd>#FCF9FC</dd></div>
+              <div><dt>AA</dt><dd>13.08:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3E253D; --role-fg: #FCF9FC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3E253D</dd></div>
+              <div><dt>FG</dt><dd>#FCF9FC</dd></div>
+              <div><dt>AA</dt><dd>13.08:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪🟥</span>
+            <h3>Magenta</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a00da0">#a00da0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #540754; --role-fg: #FFF9FF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#540754</dd></div>
+              <div><dt>FG</dt><dd>#FFF9FF</dd></div>
+              <div><dt>AA</dt><dd>13.19:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #760A76; --role-fg: #FFFBFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#760A76</dd></div>
+              <div><dt>FG</dt><dd>#FFFBFF</dd></div>
+              <div><dt>AA</dt><dd>9.88:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #540754; --role-fg: #FFF9FF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#540754</dd></div>
+              <div><dt>FG</dt><dd>#FFF9FF</dd></div>
+              <div><dt>AA</dt><dd>13.19:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #540754; --role-fg: #FFF9FF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#540754</dd></div>
+              <div><dt>FG</dt><dd>#FFF9FF</dd></div>
+              <div><dt>AA</dt><dd>13.19:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬛⬛⬛</span>
+            <h3>Black</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #080808">#080808</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #080808; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#080808</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>19.19:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0B0B0B; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0B0B0B</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>18.86:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #080808; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#080808</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>19.19:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #080808; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#080808</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>19.19:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬜⬛⬜</span>
+            <h3>Gray</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #808080">#808080</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1E1E1E; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1E1E1E</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>15.97:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2A2A2A; --role-fg: #F9F9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2A2A2A</dd></div>
+              <div><dt>FG</dt><dd>#F9F9F9</dd></div>
+              <div><dt>AA</dt><dd>13.63:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1E1E1E; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1E1E1E</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>15.97:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1E1E1E; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1E1E1E</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>15.97:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬜⬜⬜</span>
+            <h3>White</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #e0e0e0">#e0e0e0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3B3B3B; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3B3B3B</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>10.73:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #535353; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#535353</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>7.37:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3B3B3B; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3B3B3B</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>10.73:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3B3B3B; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3B3B3B</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>10.73:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="mode-section light" id="light">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">light theme</p>
+        <h2>Light mode · 34 presets</h2>
+      </div>
+      <p>Exact output after selecting each preset while Window Colors is using its light theme.</p>
+    </div>
+    <div class="preset-grid">
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟥🟥</span>
+            <h3>Red</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #c0392b">#c0392b</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #551913; --role-fg: #FEFCFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#551913</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFC</dd></div>
+              <div><dt>AA</dt><dd>13.39:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #E8A19A; --role-fg: #300E0B">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#E8A19A</dd></div>
+              <div><dt>FG</dt><dd>#300E0B</dd></div>
+              <div><dt>AA</dt><dd>8.38:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #551913; --role-fg: #FEFCFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#551913</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFC</dd></div>
+              <div><dt>AA</dt><dd>13.39:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #661E17; --role-fg: #FEFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#661E17</dd></div>
+              <div><dt>FG</dt><dd>#FEFAFA</dd></div>
+              <div><dt>AA</dt><dd>11.50:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟥🟪</span>
+            <h3>Crimson</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #9b1b5a">#9b1b5a</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580F33; --role-fg: #FEFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580F33</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.43:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #ED9AC3; --role-fg: #33091E">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#ED9AC3</dd></div>
+              <div><dt>FG</dt><dd>#33091E</dd></div>
+              <div><dt>AA</dt><dd>8.35:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580F33; --role-fg: #FEFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580F33</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.43:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6A123D; --role-fg: #FEFAFC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6A123D</dd></div>
+              <div><dt>FG</dt><dd>#FEFAFC</dd></div>
+              <div><dt>AA</dt><dd>11.49:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟥⬛</span>
+            <h3>Blood</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #7a0808">#7a0808</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #610606; --role-fg: #FFFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#610606</dd></div>
+              <div><dt>FG</dt><dd>#FFFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #F89C9C; --role-fg: #3A0404">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#F89C9C</dd></div>
+              <div><dt>FG</dt><dd>#3A0404</dd></div>
+              <div><dt>AA</dt><dd>8.53:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #610606; --role-fg: #FFFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#610606</dd></div>
+              <div><dt>FG</dt><dd>#FFFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #740808; --role-fg: #FFFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#740808</dd></div>
+              <div><dt>FG</dt><dd>#FFFAFA</dd></div>
+              <div><dt>AA</dt><dd>11.40:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟥🟪🟪</span>
+            <h3>Berry</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6b1048">#6b1048</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580D3B; --role-fg: #FFFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580D3B</dd></div>
+              <div><dt>FG</dt><dd>#FFFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #F09ACF; --role-fg: #330823">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#F09ACF</dd></div>
+              <div><dt>FG</dt><dd>#330823</dd></div>
+              <div><dt>AA</dt><dd>8.53:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #580D3B; --role-fg: #FFFCFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#580D3B</dd></div>
+              <div><dt>FG</dt><dd>#FFFCFD</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #691047; --role-fg: #FEF8FC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#691047</dd></div>
+              <div><dt>FG</dt><dd>#FEF8FC</dd></div>
+              <div><dt>AA</dt><dd>11.35:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟫🟫🟫</span>
+            <h3>Brown</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6d4c41">#6d4c41</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6D4C41; --role-fg: #FBF9F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6D4C41</dd></div>
+              <div><dt>FG</dt><dd>#FBF9F8</dd></div>
+              <div><dt>AA</dt><dd>7.25:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #CAAEA5; --role-fg: #221714">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#CAAEA5</dd></div>
+              <div><dt>FG</dt><dd>#221714</dd></div>
+              <div><dt>AA</dt><dd>8.42:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6D4C41; --role-fg: #FBF9F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6D4C41</dd></div>
+              <div><dt>FG</dt><dd>#FBF9F8</dd></div>
+              <div><dt>AA</dt><dd>7.25:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #7A5549; --role-fg: #FCFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#7A5549</dd></div>
+              <div><dt>FG</dt><dd>#FCFAFA</dd></div>
+              <div><dt>AA</dt><dd>6.27:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟫🟥🟥</span>
+            <h3>Maroon</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #5c2020">#5c2020</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #511C1C; --role-fg: #FEFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#511C1C</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.31:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #E0A6A6; --role-fg: #2E1010">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#E0A6A6</dd></div>
+              <div><dt>FG</dt><dd>#2E1010</dd></div>
+              <div><dt>AA</dt><dd>8.49:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #511C1C; --role-fg: #FEFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#511C1C</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFB</dd></div>
+              <div><dt>AA</dt><dd>13.31:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #602121; --role-fg: #FEFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#602121</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFB</dd></div>
+              <div><dt>AA</dt><dd>11.75:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟧🟧🟧</span>
+            <h3>Orange</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #d88000">#d88000</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #875000; --role-fg: #FFFAF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#875000</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF2</dd></div>
+              <div><dt>AA</dt><dd>6.36:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #FF9D0E; --role-fg: #261600">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#FF9D0E</dd></div>
+              <div><dt>FG</dt><dd>#261600</dd></div>
+              <div><dt>AA</dt><dd>8.42:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #875000; --role-fg: #FFFAF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#875000</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF2</dd></div>
+              <div><dt>AA</dt><dd>6.36:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #9B5C00; --role-fg: #FFFAF2">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#9B5C00</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF2</dd></div>
+              <div><dt>AA</dt><dd>5.15:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟧🟧🟥</span>
+            <h3>Rust</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a02c18">#a02c18</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #A02C18; --role-fg: #FEF9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#A02C18</dd></div>
+              <div><dt>FG</dt><dd>#FEF9F9</dd></div>
+              <div><dt>AA</dt><dd>7.02:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #EF9F92; --role-fg: #320D07">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#EF9F92</dd></div>
+              <div><dt>FG</dt><dd>#320D07</dd></div>
+              <div><dt>AA</dt><dd>8.40:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #A02C18; --role-fg: #FEF9F9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#A02C18</dd></div>
+              <div><dt>FG</dt><dd>#FEF9F9</dd></div>
+              <div><dt>AA</dt><dd>7.02:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #B2311B; --role-fg: #FEF9F8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#B2311B</dd></div>
+              <div><dt>FG</dt><dd>#FEF9F8</dd></div>
+              <div><dt>AA</dt><dd>6.01:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟧🟧🟫</span>
+            <h3>Ember</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a84808">#a84808</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #9B4207; --role-fg: #FFF8F4">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#9B4207</dd></div>
+              <div><dt>FG</dt><dd>#FFF8F4</dd></div>
+              <div><dt>AA</dt><dd>6.29:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #F89E63; --role-fg: #2C1302">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#F89E63</dd></div>
+              <div><dt>FG</dt><dd>#2C1302</dd></div>
+              <div><dt>AA</dt><dd>8.38:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #9B4207; --role-fg: #FFF8F4">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#9B4207</dd></div>
+              <div><dt>FG</dt><dd>#FFF8F4</dd></div>
+              <div><dt>AA</dt><dd>6.29:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #AE4B08; --role-fg: #FFFAF8">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#AE4B08</dd></div>
+              <div><dt>FG</dt><dd>#FFFAF8</dd></div>
+              <div><dt>AA</dt><dd>5.32:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟨🟨🟨</span>
+            <h3>Yellow</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #f1c40f">#f1c40f</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #594905; --role-fg: #FEFBEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#594905</dd></div>
+              <div><dt>FG</dt><dd>#FEFBEC</dd></div>
+              <div><dt>AA</dt><dd>8.50:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #F1C40F; --role-fg: #1F1902">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#F1C40F</dd></div>
+              <div><dt>FG</dt><dd>#1F1902</dd></div>
+              <div><dt>AA</dt><dd>10.55:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #594905; --role-fg: #FEFBEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#594905</dd></div>
+              <div><dt>FG</dt><dd>#FEFBEC</dd></div>
+              <div><dt>AA</dt><dd>8.50:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #6D5806; --role-fg: #FEFBEE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#6D5806</dd></div>
+              <div><dt>FG</dt><dd>#FEFBEE</dd></div>
+              <div><dt>AA</dt><dd>6.64:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟨🟫</span>
+            <h3>Olive</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6b6b15">#6b6b15</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4D4D0F; --role-fg: #FBFBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4D4D0F</dd></div>
+              <div><dt>FG</dt><dd>#FBFBEA</dd></div>
+              <div><dt>AA</dt><dd>8.43:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #B9B924; --role-fg: #1A1A05">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#B9B924</dd></div>
+              <div><dt>FG</dt><dd>#1A1A05</dd></div>
+              <div><dt>AA</dt><dd>8.40:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4D4D0F; --role-fg: #FBFBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4D4D0F</dd></div>
+              <div><dt>FG</dt><dd>#FBFBEA</dd></div>
+              <div><dt>AA</dt><dd>8.43:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #5E5E12; --role-fg: #FBFBE9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#5E5E12</dd></div>
+              <div><dt>FG</dt><dd>#FBFBE9</dd></div>
+              <div><dt>AA</dt><dd>6.51:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟨🟨🟩</span>
+            <h3>Chartreuse</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a3b820">#a3b820</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #464F0E; --role-fg: #F9FBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#464F0E</dd></div>
+              <div><dt>FG</dt><dd>#F9FBEA</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #A8BE21; --role-fg: #181B05">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#A8BE21</dd></div>
+              <div><dt>FG</dt><dd>#181B05</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #464F0E; --role-fg: #F9FBEA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#464F0E</dd></div>
+              <div><dt>FG</dt><dd>#F9FBEA</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #556011; --role-fg: #FAFCEC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#556011</dd></div>
+              <div><dt>FG</dt><dd>#FAFCEC</dd></div>
+              <div><dt>AA</dt><dd>6.59:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩🟩</span>
+            <h3>Green</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #27ae60">#27ae60</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0C351D; --role-fg: #F3FCF7">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0C351D</dd></div>
+              <div><dt>FG</dt><dd>#F3FCF7</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2ECE72; --role-fg: #071E10">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2ECE72</dd></div>
+              <div><dt>FG</dt><dd>#071E10</dd></div>
+              <div><dt>AA</dt><dd>8.47:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0C351D; --role-fg: #F3FCF7">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0C351D</dd></div>
+              <div><dt>FG</dt><dd>#F3FCF7</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #104526; --role-fg: #F3FCF7">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#104526</dd></div>
+              <div><dt>FG</dt><dd>#F3FCF7</dd></div>
+              <div><dt>AA</dt><dd>10.56:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩🟨</span>
+            <h3>Lime</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #6ba00d">#6ba00d</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #223204; --role-fg: #F5FDE5">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#223204</dd></div>
+              <div><dt>FG</dt><dd>#F5FDE5</dd></div>
+              <div><dt>AA</dt><dd>13.15:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #85C710; --role-fg: #131C02">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#85C710</dd></div>
+              <div><dt>FG</dt><dd>#131C02</dd></div>
+              <div><dt>AA</dt><dd>8.52:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #223204; --role-fg: #F5FDE5">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#223204</dd></div>
+              <div><dt>FG</dt><dd>#F5FDE5</dd></div>
+              <div><dt>AA</dt><dd>13.15:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2E4506; --role-fg: #F4FDE5">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2E4506</dd></div>
+              <div><dt>FG</dt><dd>#F4FDE5</dd></div>
+              <div><dt>AA</dt><dd>10.17:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩⬛</span>
+            <h3>Forest</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #022002">#022002</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #022002; --role-fg: #F0FEF0">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#022002</dd></div>
+              <div><dt>FG</dt><dd>#F0FEF0</dd></div>
+              <div><dt>AA</dt><dd>16.64:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0DD00D; --role-fg: #021F02">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0DD00D</dd></div>
+              <div><dt>FG</dt><dd>#021F02</dd></div>
+              <div><dt>AA</dt><dd>8.37:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #022002; --role-fg: #F0FEF0">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#022002</dd></div>
+              <div><dt>FG</dt><dd>#F0FEF0</dd></div>
+              <div><dt>AA</dt><dd>16.64:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #033303; --role-fg: #EEFEEE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#033303</dd></div>
+              <div><dt>FG</dt><dd>#EEFEEE</dd></div>
+              <div><dt>AA</dt><dd>13.56:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩⬜⬛</span>
+            <h3>Sage</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #4a7a4a">#4a7a4a</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1F321F; --role-fg: #F9FBF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1F321F</dd></div>
+              <div><dt>FG</dt><dd>#F9FBF9</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #94BE94; --role-fg: #111C11">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#94BE94</dd></div>
+              <div><dt>FG</dt><dd>#111C11</dd></div>
+              <div><dt>AA</dt><dd>8.39:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1F321F; --role-fg: #F9FBF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1F321F</dd></div>
+              <div><dt>FG</dt><dd>#F9FBF9</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #263F26; --role-fg: #FAFCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#263F26</dd></div>
+              <div><dt>FG</dt><dd>#FAFCFA</dd></div>
+              <div><dt>AA</dt><dd>11.18:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟩🟩🟦</span>
+            <h3>Emerald</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #10b035">#10b035</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053610; --role-fg: #EEFDF1">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053610</dd></div>
+              <div><dt>FG</dt><dd>#EEFDF1</dd></div>
+              <div><dt>AA</dt><dd>12.94:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #13D03F; --role-fg: #031F09">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#13D03F</dd></div>
+              <div><dt>FG</dt><dd>#031F09</dd></div>
+              <div><dt>AA</dt><dd>8.41:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053610; --role-fg: #EEFDF1">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053610</dd></div>
+              <div><dt>FG</dt><dd>#EEFDF1</dd></div>
+              <div><dt>AA</dt><dd>12.94:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #074816; --role-fg: #EFFDF3">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#074816</dd></div>
+              <div><dt>FG</dt><dd>#EFFDF3</dd></div>
+              <div><dt>AA</dt><dd>10.28:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟩🟩</span>
+            <h3>Juniper</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #18503e">#18503e</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3328; --role-fg: #F5FCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3328</dd></div>
+              <div><dt>FG</dt><dd>#F5FCFA</dd></div>
+              <div><dt>AA</dt><dd>13.24:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #49C89F; --role-fg: #091D16">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#49C89F</dd></div>
+              <div><dt>FG</dt><dd>#091D16</dd></div>
+              <div><dt>AA</dt><dd>8.38:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3328; --role-fg: #F5FCFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3328</dd></div>
+              <div><dt>FG</dt><dd>#F5FCFA</dd></div>
+              <div><dt>AA</dt><dd>13.24:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #144334; --role-fg: #F4FCF9">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#144334</dd></div>
+              <div><dt>FG</dt><dd>#F4FCF9</dd></div>
+              <div><dt>AA</dt><dd>10.70:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟩</span>
+            <h3>Teal</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #0a9e9e">#0a9e9e</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #033333; --role-fg: #E9FEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#033333</dd></div>
+              <div><dt>FG</dt><dd>#E9FEFE</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0DC9C9; --role-fg: #021D1D">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0DC9C9</dd></div>
+              <div><dt>FG</dt><dd>#021D1D</dd></div>
+              <div><dt>AA</dt><dd>8.54:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #033333; --role-fg: #E9FEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#033333</dd></div>
+              <div><dt>FG</dt><dd>#E9FEFE</dd></div>
+              <div><dt>AA</dt><dd>13.16:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #044646; --role-fg: #ECFEFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#044646</dd></div>
+              <div><dt>FG</dt><dd>#ECFEFE</dd></div>
+              <div><dt>AA</dt><dd>10.24:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟫</span>
+            <h3>Petrol</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #0c7ba0">#0c7ba0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053241; --role-fg: #F3FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053241</dd></div>
+              <div><dt>FG</dt><dd>#F3FBFE</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #34C1F0; --role-fg: #031C25">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#34C1F0</dd></div>
+              <div><dt>FG</dt><dd>#031C25</dd></div>
+              <div><dt>AA</dt><dd>8.38:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #053241; --role-fg: #F3FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#053241</dd></div>
+              <div><dt>FG</dt><dd>#F3FBFE</dd></div>
+              <div><dt>AA</dt><dd>13.02:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #064054; --role-fg: #F4FCFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#064054</dd></div>
+              <div><dt>FG</dt><dd>#F4FCFE</dd></div>
+              <div><dt>AA</dt><dd>10.81:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦⬛</span>
+            <h3>Navy</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #031a30">#031a30</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #031A30; --role-fg: #F8FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#031A30</dd></div>
+              <div><dt>FG</dt><dd>#F8FCFF</dd></div>
+              <div><dt>AA</dt><dd>17.05:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #77B8F7; --role-fg: #031A31">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#77B8F7</dd></div>
+              <div><dt>FG</dt><dd>#031A31</dd></div>
+              <div><dt>AA</dt><dd>8.35:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #031A30; --role-fg: #F8FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#031A30</dd></div>
+              <div><dt>FG</dt><dd>#F8FCFF</dd></div>
+              <div><dt>AA</dt><dd>17.05:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #042443; --role-fg: #F9FCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#042443</dd></div>
+              <div><dt>FG</dt><dd>#F9FCFF</dd></div>
+              <div><dt>AA</dt><dd>15.24:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟦</span>
+            <h3>Blue</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #2980b9">#2980b9</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3046; --role-fg: #F6FAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3046</dd></div>
+              <div><dt>FG</dt><dd>#F6FAFD</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #7FBBE3; --role-fg: #091B27">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#7FBBE3</dd></div>
+              <div><dt>FG</dt><dd>#091B27</dd></div>
+              <div><dt>AA</dt><dd>8.45:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0F3046; --role-fg: #F6FAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0F3046</dd></div>
+              <div><dt>FG</dt><dd>#F6FAFD</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #133C56; --role-fg: #F7FBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#133C56</dd></div>
+              <div><dt>FG</dt><dd>#F7FBFD</dd></div>
+              <div><dt>AA</dt><dd>11.15:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦⬛🟦</span>
+            <h3>Cobalt</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #1050a0">#1050a0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #092D5A; --role-fg: #F7FAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#092D5A</dd></div>
+              <div><dt>FG</dt><dd>#F7FAFE</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #88B7F3; --role-fg: #051A34">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#88B7F3</dd></div>
+              <div><dt>FG</dt><dd>#051A34</dd></div>
+              <div><dt>AA</dt><dd>8.40:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #092D5A; --role-fg: #F7FAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#092D5A</dd></div>
+              <div><dt>FG</dt><dd>#F7FAFE</dd></div>
+              <div><dt>AA</dt><dd>13.07:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #0B366D; --role-fg: #F9FBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#0B366D</dd></div>
+              <div><dt>FG</dt><dd>#F9FBFE</dd></div>
+              <div><dt>AA</dt><dd>11.49:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟦🟪</span>
+            <h3>Ultramarine</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #1818a0">#1818a0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #15158E; --role-fg: #FCFCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#15158E</dd></div>
+              <div><dt>FG</dt><dd>#FCFCFF</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #ADADF3; --role-fg: #0C0C54">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#ADADF3</dd></div>
+              <div><dt>FG</dt><dd>#0C0C54</dd></div>
+              <div><dt>AA</dt><dd>8.40:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #15158E; --role-fg: #FCFCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#15158E</dd></div>
+              <div><dt>FG</dt><dd>#FCFCFF</dd></div>
+              <div><dt>AA</dt><dd>13.41:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1818A0; --role-fg: #FDFDFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1818A0</dd></div>
+              <div><dt>FG</dt><dd>#FDFDFF</dd></div>
+              <div><dt>AA</dt><dd>12.33:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬛⬛🟦</span>
+            <h3>Midnight</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #151540">#151540</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #151540; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#151540</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>16.76:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #B0B0E5; --role-fg: #14143D">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#B0B0E5</dd></div>
+              <div><dt>FG</dt><dd>#14143D</dd></div>
+              <div><dt>AA</dt><dd>8.51:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #151540; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#151540</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>16.76:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1A1A4F; --role-fg: #FCFCFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1A1A4F</dd></div>
+              <div><dt>FG</dt><dd>#FCFCFE</dd></div>
+              <div><dt>AA</dt><dd>15.71:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟦🟪🟪</span>
+            <h3>Indigo</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #3a2a80">#3a2a80</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2E2267; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2E2267</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>13.20:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #B7ACE4; --role-fg: #1B133A">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#B7ACE4</dd></div>
+              <div><dt>FG</dt><dd>#1B133A</dd></div>
+              <div><dt>AA</dt><dd>8.36:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #2E2267; --role-fg: #FBFBFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#2E2267</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFE</dd></div>
+              <div><dt>AA</dt><dd>13.20:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #352776; --role-fg: #FAFAFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#352776</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFD</dd></div>
+              <div><dt>AA</dt><dd>11.84:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪🟪</span>
+            <h3>Purple</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #8e44ad">#8e44ad</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #411F4F; --role-fg: #FDFBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#411F4F</dd></div>
+              <div><dt>FG</dt><dd>#FDFBFD</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #CDA8DD; --role-fg: #25122D">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#CDA8DD</dd></div>
+              <div><dt>FG</dt><dd>#25122D</dd></div>
+              <div><dt>AA</dt><dd>8.51:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #411F4F; --role-fg: #FDFBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#411F4F</dd></div>
+              <div><dt>FG</dt><dd>#FDFBFD</dd></div>
+              <div><dt>AA</dt><dd>13.30:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4D255E; --role-fg: #FCF9FD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4D255E</dd></div>
+              <div><dt>FG</dt><dd>#FCF9FD</dd></div>
+              <div><dt>AA</dt><dd>11.54:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪🟦</span>
+            <h3>Violet</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #7a10a0">#7a10a0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4C0A64; --role-fg: #FDFAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4C0A64</dd></div>
+              <div><dt>FG</dt><dd>#FDFAFE</dd></div>
+              <div><dt>AA</dt><dd>13.22:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #DE9DF5; --role-fg: #2D063B">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#DE9DF5</dd></div>
+              <div><dt>FG</dt><dd>#2D063B</dd></div>
+              <div><dt>AA</dt><dd>8.53:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4C0A64; --role-fg: #FDFAFE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4C0A64</dd></div>
+              <div><dt>FG</dt><dd>#FDFAFE</dd></div>
+              <div><dt>AA</dt><dd>13.22:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #5A0C76; --role-fg: #FDF9FE">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#5A0C76</dd></div>
+              <div><dt>FG</dt><dd>#FDF9FE</dd></div>
+              <div><dt>AA</dt><dd>11.53:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪⬛</span>
+            <h3>Plum</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #400a55">#400a55</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #400A55; --role-fg: #FEFBFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#400A55</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFF</dd></div>
+              <div><dt>AA</dt><dd>14.69:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #DC9EF4; --role-fg: #2C073B">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#DC9EF4</dd></div>
+              <div><dt>FG</dt><dd>#2C073B</dd></div>
+              <div><dt>AA</dt><dd>8.53:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #400A55; --role-fg: #FEFBFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#400A55</dd></div>
+              <div><dt>FG</dt><dd>#FEFBFF</dd></div>
+              <div><dt>AA</dt><dd>14.69:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4E0C67; --role-fg: #FEFCFF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4E0C67</dd></div>
+              <div><dt>FG</dt><dd>#FEFCFF</dd></div>
+              <div><dt>AA</dt><dd>13.09:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪⬜⬛</span>
+            <h3>Mauve</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #7a4878">#7a4878</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3E253D; --role-fg: #FCF9FC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3E253D</dd></div>
+              <div><dt>FG</dt><dd>#FCF9FC</dd></div>
+              <div><dt>AA</dt><dd>13.08:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #CDAACB; --role-fg: #231522">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#CDAACB</dd></div>
+              <div><dt>FG</dt><dd>#231522</dd></div>
+              <div><dt>AA</dt><dd>8.49:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3E253D; --role-fg: #FCF9FC">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3E253D</dd></div>
+              <div><dt>FG</dt><dd>#FCF9FC</dd></div>
+              <div><dt>AA</dt><dd>13.08:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #4B2C4A; --role-fg: #FDFBFD">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#4B2C4A</dd></div>
+              <div><dt>FG</dt><dd>#FDFBFD</dd></div>
+              <div><dt>AA</dt><dd>11.60:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">🟪🟪🟥</span>
+            <h3>Magenta</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #a00da0">#a00da0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #540754; --role-fg: #FFF9FF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#540754</dd></div>
+              <div><dt>FG</dt><dd>#FFF9FF</dd></div>
+              <div><dt>AA</dt><dd>13.19:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #F68EF6; --role-fg: #320432">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#F68EF6</dd></div>
+              <div><dt>FG</dt><dd>#320432</dd></div>
+              <div><dt>AA</dt><dd>8.44:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #540754; --role-fg: #FFF9FF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#540754</dd></div>
+              <div><dt>FG</dt><dd>#FFF9FF</dd></div>
+              <div><dt>AA</dt><dd>13.19:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #670867; --role-fg: #FFF9FF">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#670867</dd></div>
+              <div><dt>FG</dt><dd>#FFF9FF</dd></div>
+              <div><dt>AA</dt><dd>11.20:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬛⬛⬛</span>
+            <h3>Black</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #080808">#080808</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #080808; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#080808</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>19.19:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #B4B4B4; --role-fg: #191919">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#B4B4B4</dd></div>
+              <div><dt>FG</dt><dd>#191919</dd></div>
+              <div><dt>AA</dt><dd>8.48:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #080808; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#080808</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>19.19:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #121212; --role-fg: #FBFBFB">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#121212</dd></div>
+              <div><dt>FG</dt><dd>#FBFBFB</dd></div>
+              <div><dt>AA</dt><dd>18.10:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬜⬛⬜</span>
+            <h3>Gray</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #808080">#808080</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1E1E1E; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1E1E1E</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>15.97:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #D5D5D5; --role-fg: #191919">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#D5D5D5</dd></div>
+              <div><dt>FG</dt><dd>#191919</dd></div>
+              <div><dt>AA</dt><dd>11.98:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #1E1E1E; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#1E1E1E</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>15.97:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #282828; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#282828</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>14.13:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="preset-card">
+        <header class="preset-heading">
+          <div>
+            <span class="emoji" aria-hidden="true">⬜⬜⬜</span>
+            <h3>White</h3>
+          </div>
+          <span class="base-chip" style="--base-bg: #e0e0e0">#e0e0e0</span>
+        </header>
+        <div class="roles">
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3B3B3B; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Activity bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3B3B3B</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>10.73:1</dd></div>
+            </dl>
+            <p>activityBar foreground + inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #E0E0E0; --role-fg: #191919">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · active</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#E0E0E0</dd></div>
+              <div><dt>FG</dt><dd>#191919</dd></div>
+              <div><dt>AA</dt><dd>13.32:1</dd></div>
+            </dl>
+            <p>titleBar.activeForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #3B3B3B; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Title bar · inactive</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#3B3B3B</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>10.73:1</dd></div>
+            </dl>
+            <p>titleBar.inactiveForeground</p>
+          </div>
+
+          <div class="role">
+            <div class="swatch" style="--role-bg: #464646; --role-fg: #FAFAFA">
+              <span class="sample-icon" aria-hidden="true">◆</span>
+              <span>Status bar</span>
+            </div>
+            <dl>
+              <div><dt>BG</dt><dd>#464646</dd></div>
+              <div><dt>FG</dt><dd>#FAFAFA</dd></div>
+              <div><dt>AA</dt><dd>9.04:1</dd></div>
+            </dl>
+            <p>normal, debugging, and no-folder states</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+  <footer>
+    Generated from <code>src/extension.ts</code> and <code>src/color_model.ts</code>.
+    Regenerate with <code>npm run preview:generate</code>.
+  </footer>
 </body>
 </html>

@@ -14,7 +14,7 @@ import {
 } from './color_model';
 import { removeManagedColorCustomizations, WorkspaceSettings } from './settings_cleanup';
 
-const BASE_COLORS = [
+export const BASE_COLORS = [
   // Reds & Pinks
   { emoji: '🟥🟥🟥', name: 'Red',         hex: '#c0392b' },
   { emoji: '🟥🟥🟪', name: 'Crimson',     hex: '#9b1b5a' },
@@ -59,7 +59,7 @@ const BASE_COLORS = [
   { emoji: '⬜⬜⬜', name: 'White',       hex: '#e0e0e0' },
 ];
 
-interface DerivedColors {
+export interface DerivedColors {
   sideBar: Color;
   titleBar: Color;
   statusBar: Color;
@@ -78,7 +78,11 @@ function resolveTheme(setting: string | undefined): string | undefined {
 // Derive themed bar backgrounds from a raw base color.
 // When respectExtremes is true, colors already beyond the dark/light threshold are
 // kept as-is (used for user-chosen baseColor overrides like Black or White).
-function deriveThemedColors(rawColor: Color, theme: string | undefined, respectExtremes = false): DerivedColors {
+export function deriveThemedColors(
+  rawColor: Color,
+  theme: string | undefined,
+  respectExtremes = false,
+): DerivedColors {
   const hue = rawColor.hue();
   const yellowish = hue >= 40 && hue <= 70;
   const achromatic = rawColor.saturationl() < 5;

@@ -30,13 +30,21 @@ try {
 const { BASE_COLORS, deriveThemedColors } = extension;
 
 describe('background generation', () => {
-  it('slightly lightens every inactive title bar in light mode', () => {
+  it('places every light-mode inactive title bar between the activity and active title bars', () => {
     for (const preset of BASE_COLORS) {
       const derived = deriveThemedColors(Color(preset.hex), 'light', true);
-      equal(
-        derived.inactiveTitleBar.lightness(),
-        derived.sideBar.lightness() + 4,
-        `${preset.name} should add four lightness points`,
+      ok(
+        derived.inactiveTitleBar.luminosity() > derived.sideBar.luminosity(),
+        `${preset.name} inactive title should be brighter than its activity bar`,
+      );
+      ok(
+        derived.inactiveTitleBar.luminosity() < derived.titleBar.luminosity(),
+        `${preset.name} inactive title should be darker than its active title`,
+      );
+      ok(
+        derived.inactiveTitleBar.luminosity() >= 0.18 &&
+          derived.inactiveTitleBar.luminosity() <= 0.24,
+        `${preset.name} inactive title should be considerably brighter`,
       );
 
       const background = derived.inactiveTitleBar.hex();
@@ -52,6 +60,17 @@ describe('background generation', () => {
     for (const preset of BASE_COLORS) {
       const derived = deriveThemedColors(Color(preset.hex), 'dark', true);
       equal(derived.inactiveTitleBar.hex(), derived.sideBar.hex(), preset.name);
+      equal(
+        derived.titleBar.hex(),
+        derived.sideBar.lighten(0.5).hex(),
+        `${preset.name} active title should use the brighter dark-mode lift`,
+      );
+
+      const foreground = foregroundFor(derived.titleBar.hex());
+      ok(
+        contrastRatio(derived.titleBar.hex(), foreground) >= 4.5,
+        `${preset.name} active title pair should clear WCAG AA`,
+      );
     }
   });
 });

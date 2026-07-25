@@ -7,6 +7,7 @@ import {
   foregroundFor,
   improveForegrounds,
   mergePreservedBackgrounds,
+  reconcileColorCustomizations,
 } from '../src/color_model';
 
 describe('foregroundFor', () => {
@@ -100,6 +101,19 @@ describe('improveForegrounds', () => {
       },
     );
   });
+
+  it('leaves an existing foreground alone for translucent backgrounds', () => {
+    deepStrictEqual(
+      improveForegrounds({
+        'activityBar.background': '#05324180',
+        'activityBar.foreground': '#ABCDEF',
+      }),
+      {
+        'activityBar.background': '#05324180',
+        'activityBar.foreground': '#ABCDEF',
+      },
+    );
+  });
 });
 
 describe('background persistence', () => {
@@ -141,5 +155,62 @@ describe('background persistence', () => {
     );
 
     deepStrictEqual(mergePreservedBackgrounds(current, generated), current);
+  });
+});
+
+describe('reconcileColorCustomizations', () => {
+  it('preserves every current background while refreshing its foreground', () => {
+    const result = reconcileColorCustomizations(
+      {
+        'activityBar.background': '#053241',
+        'activityBar.foreground': '#1F1F1F',
+        'titleBar.activeBackground': '#34C1F0',
+      },
+      { 'titleBar.inactiveBackground': '#031C25' },
+      {
+        'activityBar.background': '#FFFFFF',
+        'titleBar.activeBackground': '#FFFFFF',
+        'statusBar.background': '#996A5B',
+      },
+      { activityBar: true, titleBar: true, statusBar: true, removeAll: false },
+    );
+
+    equal(result['activityBar.background'], '#053241');
+    equal(result['titleBar.activeBackground'], '#34C1F0');
+    equal(result['titleBar.inactiveBackground'], '#031C25');
+    equal(result['statusBar.background'], '#996A5B');
+    equal(result['activityBar.foreground'], '#F3FBFE');
+  });
+
+  it('removes all keys for disabled areas, including orphaned foregrounds', () => {
+    deepStrictEqual(
+      reconcileColorCustomizations(
+        {
+          'activityBar.foreground': '#FFFFFF',
+          'activityBar.inactiveForeground': '#AAAAAA',
+          'editor.background': '#123456',
+        },
+        undefined,
+        {},
+        { activityBar: false, titleBar: true, statusBar: true, removeAll: false },
+      ),
+      { 'editor.background': '#123456' },
+    );
+  });
+
+  it('removes all managed colors while preserving unrelated customizations', () => {
+    deepStrictEqual(
+      reconcileColorCustomizations(
+        {
+          'activityBar.background': '#053241',
+          'titleBar.activeForeground': '#FFFFFF',
+          'editor.background': '#123456',
+        },
+        undefined,
+        {},
+        { activityBar: true, titleBar: true, statusBar: true, removeAll: true },
+      ),
+      { 'editor.background': '#123456' },
+    );
   });
 });

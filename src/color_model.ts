@@ -2,6 +2,13 @@ import * as Color from 'color';
 
 export type ColorCustomizations = Record<string, string | undefined>;
 
+export interface ManagedColorAreas {
+  activityBar: boolean;
+  titleBar: boolean;
+  statusBar: boolean;
+  removeAll: boolean;
+}
+
 export const BACKGROUND_FOREGROUND_PAIRS: ReadonlyArray<readonly [string, readonly string[]]> = [
   ['activityBar.background', ['activityBar.foreground', 'activityBar.inactiveForeground']],
   ['titleBar.activeBackground', ['titleBar.activeForeground']],
@@ -10,6 +17,11 @@ export const BACKGROUND_FOREGROUND_PAIRS: ReadonlyArray<readonly [string, readon
   ['statusBar.debuggingBackground', ['statusBar.debuggingForeground']],
   ['statusBar.noFolderBackground', ['statusBar.noFolderForeground']],
 ];
+
+export const MANAGED_COLOR_KEYS: readonly string[] = BACKGROUND_FOREGROUND_PAIRS.reduce<string[]>(
+  (keys, [backgroundKey, foregroundKeys]) => keys.concat(backgroundKey, ...foregroundKeys),
+  [],
+);
 
 const MAX_LUMINOSITY_ITERATIONS = 500;
 const WCAG_AA_CONTRAST = 4.5;
@@ -41,6 +53,9 @@ export function contrastRatio(first: string | Color, second: string | Color): nu
  */
 export function foregroundFor(background: string): string {
   const backgroundColor = Color(background);
+  if (backgroundColor.alpha() < 1) {
+    throw new Error('Cannot determine contrast for a translucent background');
+  }
   const tintedCandidates = [
     getColorWithLuminosity(backgroundColor, 0.95, 1),
     getColorWithLuminosity(backgroundColor, 0, 0.01),
@@ -110,4 +125,34 @@ export function mergePreservedBackgrounds(
     }
   }
   return merged;
+}
+
+/** Apply the complete managed-color policy as one deterministic transformation. */
+export function reconcileColorCustomizations(
+  current: ColorCustomizations,
+  preservedBackgrounds: ColorCustomizations | undefined,
+  generatedBackgrounds: ColorCustomizations,
+  areas: ManagedColorAreas,
+): ColorCustomizations {
+  const restored = mergePreservedBackgrounds(current, preservedBackgrounds);
+  const reconciled = mergePreservedBackgrounds(restored, generatedBackgrounds);
+  const removeManagedArea = (prefix: string) => {
+    for (const key of MANAGED_COLOR_KEYS) {
+      if (key.startsWith(prefix)) {
+        delete reconciled[key];
+      }
+    }
+  };
+
+  if (areas.removeAll) {
+    for (const key of MANAGED_COLOR_KEYS) {
+      delete reconciled[key];
+    }
+    return reconciled;
+  }
+
+  if (!areas.activityBar) { removeManagedArea('activityBar.'); }
+  if (!areas.titleBar) { removeManagedArea('titleBar.'); }
+  if (!areas.statusBar) { removeManagedArea('statusBar.'); }
+  return improveForegrounds(reconciled);
 }

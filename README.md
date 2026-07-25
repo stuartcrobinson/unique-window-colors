@@ -20,7 +20,10 @@ This extension gives each new VS Code window a unique color based on a hash of t
   }
 ```
 
-The extension deletes this file and folder each time the VS Code window is closed unless the colors have been modified or unless they contain any other settings.  
+By default, the generated settings remain in the workspace so its background
+colors stay stable across extension updates. If you enable **Delete Settings
+File Upon Exit**, only Window Colors-managed color keys are removed when the
+window closes; unrelated workspace settings are preserved.
 
 You can optionally set a single Base Color (see Window Colors settings) by hex code or css color name.  
 
@@ -38,11 +41,15 @@ To avoid checking `.vscode/settings.json` in to your remote repository without m
 
 ## Usage
 
-Colors do not get overwritten.  This allows you to set custom colors (or a single Base Color).  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by or selecting `remove` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
+Background colors do not get overwritten during routine activation. This allows
+you to keep custom colors or select a Base Color with the command palette. To
+regenerate backgrounds, use **Window Colors: Reset Colors in This Window**.
 
 On extension updates, existing background colors remain unchanged even if their
 old base color is no longer offered in the preset picker. Foreground colors are
-automatically refreshed for readable contrast against those backgrounds.
+automatically refreshed for readable contrast against opaque backgrounds.
+Foregrounds on translucent backgrounds are left unchanged because their final
+composited color depends on the active VS Code theme.
 
 <!-- <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/> -->
 

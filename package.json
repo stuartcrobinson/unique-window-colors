@@ -8,6 +8,7 @@
   "author": {
     "name": "Stuart Robinson"
   },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.20.0"
   },
@@ -73,11 +74,11 @@
         "windowColors.deleteSettingsFileUponExit": {
           "type": "boolean",
           "default": false,
-          "description": "Delete .vscode/settings.json each time you close the workspace/window.  This prevents this file from being saved even when you haven't manually edited it.  This setting is necessary in situations where VSCode needelessly copies global settings to this workspace settings file. \n\n🚨 This will delete any workspace customizations you might have saved, including a Base Color.\n\nThis should be set in 'User Settings' instead of 'Workspace Settings' or else it will just delete itself."
+          "description": "Remove Window Colors-managed color keys from workspace settings when the window closes. Other workspace settings are preserved. Set this in User Settings so the option does not remove itself."
         },
         "windowColors.baseColor": {
           "type": "string",
-          "description": "Html color name or hex color value (eg 'whitesmoke' or '#ffffff').\n\nhttps://www.w3schools.com/colors/colors_names.asp\n\nReload the window for this to take effect (cmd-shift-p, 'Reload Window')\n\nTo remove a Base Color, you'll have to delete the relevant settings in .vscode/settings.json either manually or by selecting 'Delete Settings File Upon Exit'."
+          "description": "HTML color name or hex color value (for example, 'whitesmoke' or '#ffffff'). Use the Window Colors: Set Base Color or Reset Colors command to change or remove it."
         },
         "windowColors.colorTitleBar": {
           "type": "boolean",
@@ -107,7 +108,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "test": "npm run test:unit",
-    "test:unit": "tsc -p tsconfig.test.json && node --test .test-out/test/**/*.test.js"
+    "test:unit": "tsc -p tsconfig.test.json && node --test .test-out/test/**/*.test.js",
+    "package:vsix": "vsce package"
   },
   "devDependencies": {
     "@types/color": "^3.0.0",
@@ -117,7 +119,9 @@
     "@types/vscode": "^1.20.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/vsce": "3.9.2",
     "eslint": "^10.0.1",
+    "ovsx": "1.0.2",
     "typescript": "^4.9.0"
   },
   "dependencies": {
@@ -125,6 +129,6 @@
     "random-seed": "^0.3.0"
   },
   "overrides": {
-    "minimatch": "^10.2.1"
+    "minimatch": "^10.2.5"
   }
 }

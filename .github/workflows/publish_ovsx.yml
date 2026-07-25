@@ -1,0 +1,64 @@
+name: Publish to Open VSX
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: open-vsx-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verify release identity
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          expected_tag="v${package_version}"
+          if [[ "${RELEASE_TAG}" != "${expected_tag}" ]]; then
+            echo "Release tag must be ${expected_tag}" >&2
+            exit 1
+          fi
+          echo "VSIX_PATH=window-colors-${package_version}.vsix" >> "${GITHUB_ENV}"
+
+      - run: npm test
+      - run: npx tsc --noEmit
+      - run: npm audit
+
+      - name: Package the release VSIX
+        run: npm run package:vsix -- --out "${VSIX_PATH}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: window-colors-vsix
+          path: ${{ env.VSIX_PATH }}
+          if-no-files-found: error
+
+      - name: Publish the inspected VSIX to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [[ -z "${OVSX_PAT}" ]]; then
+            echo "Repository secret OVSX_PAT is required" >&2
+            exit 1
+          fi
+          ./node_modules/.bin/ovsx publish "${VSIX_PATH}"

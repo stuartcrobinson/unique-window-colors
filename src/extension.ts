@@ -8,24 +8,11 @@ import {
   extractBackgrounds,
   getColorWithLuminosity,
   improveForegrounds,
+  MANAGED_COLOR_KEYS,
   mergePreservedBackgrounds,
+  reconcileColorCustomizations,
 } from './color_model';
-
-const MANAGED_COLOR_KEYS = [
-  'activityBar.background',
-  'activityBar.foreground',
-  'activityBar.inactiveForeground',
-  'titleBar.activeBackground',
-  'titleBar.activeForeground',
-  'titleBar.inactiveBackground',
-  'titleBar.inactiveForeground',
-  'statusBar.background',
-  'statusBar.foreground',
-  'statusBar.debuggingBackground',
-  'statusBar.debuggingForeground',
-  'statusBar.noFolderBackground',
-  'statusBar.noFolderForeground',
-];
+import { removeManagedColorCustomizations, WorkspaceSettings } from './settings_cleanup';
 
 const BASE_COLORS = [
   // Reds & Pinks
@@ -152,46 +139,41 @@ function deriveThemedColors(rawColor: Color, theme: string | undefined, respectE
 }
 
 export class SettingsFileDeleter {
-  constructor(
-    private workspaceRoot: string,
-    private computedColors: Record<string, string>) { }
+  constructor(private workspaceRoot: string) { }
 
   /**
-   * Deletes .vscode/settings.json if colors all match the computed defaults and no other settings exist.
-   * Deletes .vscode if no other files exist.
+   * When explicitly enabled, removes extension-owned colors on shutdown while
+   * preserving all unrelated workspace settings.
    */
   public dispose() {
+    const deleteSettingsFileUponExit = workspace.getConfiguration('windowColors')
+      .get<boolean>('deleteSettingsFileUponExit') ?? false;
+    if (!deleteSettingsFileUponExit) {
+      return;
+    }
+
     const settingsFile = this.workspaceRoot + '/.vscode/settings.json';
     const vscodeDir = this.workspaceRoot + '/.vscode';
-
     if (!fs.existsSync(settingsFile)) {
       return;
     }
 
-    const settingsFileJson = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-    const cc = { ...(workspace.getConfiguration('workbench').get('colorCustomizations') as Record<string, string> || {}) };
+    let settingsFileJson: WorkspaceSettings;
+    try {
+      settingsFileJson = JSON.parse(fs.readFileSync(settingsFile, 'utf8')) as WorkspaceSettings;
+    } catch {
+      return;
+    }
+    const cleaned = removeManagedColorCustomizations(settingsFileJson);
+    if (JSON.stringify(cleaned) === JSON.stringify(settingsFileJson)) {
+      return;
+    }
 
-    const deleteSettingsFileUponExit = workspace.getConfiguration('windowColors').get<boolean>('deleteSettingsFileUponExit') ?? false;
-
-    if (deleteSettingsFileUponExit) {
+    if (Object.keys(cleaned).length === 0) {
       fs.unlinkSync(settingsFile);
       try { fs.rmdirSync(vscodeDir); } catch { /* dir not empty, leave it */ }
-    } else if (Object.keys(settingsFileJson).length === 1) {
-      // All keys in cc must be managed keys (user hasn't added their own)
-      const managedKeySet = new Set(MANAGED_COLOR_KEYS);
-      const onlyManagedKeys = Object.keys(cc).every(k => managedKeySet.has(k));
-
-      if (onlyManagedKeys) {
-        // Check none of the managed colors were modified from computed defaults
-        const aColorWasModified = Object.keys(this.computedColors).some(
-          (key: string) => cc[key] && cc[key] !== this.computedColors[key]
-        );
-
-        if (!aColorWasModified) {
-          fs.unlinkSync(settingsFile);
-          try { fs.rmdirSync(vscodeDir); } catch { /* dir not empty, leave it */ }
-        }
-      }
+    } else {
+      fs.writeFileSync(settingsFile, JSON.stringify(cleaned, null, 2) + '\n');
     }
   }
 }
@@ -199,7 +181,7 @@ export class SettingsFileDeleter {
 async function applyWindowColors(
   workspaceRoot: string,
   preservedBackgrounds?: ColorCustomizations,
-): Promise<Record<string, string>> {
+): Promise<void> {
 
   const neverColor = workspace.getConfiguration('windowColors').get<boolean>('neverColorThisWindow') ?? false;
   if (neverColor) {
@@ -215,7 +197,7 @@ async function applyWindowColors(
     if (changed) {
       await workspace.getConfiguration('workbench').update('colorCustomizations', cc, false);
     }
-    return {};
+    return;
   }
 
   const extensionTheme = resolveTheme(workspace.getConfiguration('windowColors').get<string>('theme'));
@@ -232,9 +214,6 @@ async function applyWindowColors(
     workspace.getConfiguration('workbench').get('colorCustomizations') || {}
   )) as ColorCustomizations;
   const cc = mergePreservedBackgrounds(configuredCc, preservedBackgrounds);
-  const restoredBackground = Object.keys(extractBackgrounds(cc)).some(
-    key => configuredCc[key] === undefined,
-  );
 
   let derived: DerivedColors;
 
@@ -279,80 +258,20 @@ async function applyWindowColors(
     generatedBackgrounds['statusBar.debuggingBackground'] = statusBarColor.hex();
     generatedBackgrounds['statusBar.noFolderBackground'] = statusBarColor.hex();
   }
-  const ccWithGeneratedBackgrounds = mergePreservedBackgrounds(cc, generatedBackgrounds);
-  const addedBackground = Object.keys(generatedBackgrounds).some(
-    key => cc[key] === undefined && ccWithGeneratedBackgrounds[key] !== undefined,
+  const effectiveCc = reconcileColorCustomizations(
+    configuredCc,
+    preservedBackgrounds,
+    generatedBackgrounds,
+    {
+      activityBar: colorActivityBar,
+      titleBar: colorTitleBar,
+      statusBar: colorStatusBar,
+      removeAll: doRemoveColors,
+    },
   );
-
-  // For each area, determine whether to remove colors that were switched off.
-  const removeActivityBar = !doRemoveColors && !colorActivityBar && !!cc['activityBar.background'];
-  const removeTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.activeBackground'];
-  const removeInactiveTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.inactiveBackground'];
-  const removeStatusBar = !doRemoveColors && !colorStatusBar && (
-    !!cc['statusBar.background'] || !!cc['statusBar.debuggingBackground'] ||
-    !!cc['statusBar.noFolderBackground']
-  );
-
-  const improveExistingForegrounds = !doRemoveColors && (
-    (colorActivityBar && !!ccWithGeneratedBackgrounds['activityBar.background']) ||
-    (colorTitleBar && (!!ccWithGeneratedBackgrounds['titleBar.activeBackground'] ||
-      !!ccWithGeneratedBackgrounds['titleBar.inactiveBackground'])) ||
-    (colorStatusBar && (!!ccWithGeneratedBackgrounds['statusBar.background'] ||
-      !!ccWithGeneratedBackgrounds['statusBar.debuggingBackground'] ||
-      !!ccWithGeneratedBackgrounds['statusBar.noFolderBackground']))
-  );
-
-  const anyChange = doRemoveColors || restoredBackground || improveExistingForegrounds ||
-    addedBackground || removeActivityBar || removeTitleBar || removeInactiveTitleBar || removeStatusBar;
-
-  let effectiveCc = { ...ccWithGeneratedBackgrounds };
-  if (anyChange) {
-    const newCc = { ...ccWithGeneratedBackgrounds };
-
-    if (doRemoveColors) {
-      for (const key of MANAGED_COLOR_KEYS) {
-        newCc[key] = undefined;
-      }
-    } else {
-      if (removeActivityBar) {
-        newCc['activityBar.background'] = undefined;
-        newCc['activityBar.foreground'] = undefined;
-        newCc['activityBar.inactiveForeground'] = undefined;
-      }
-
-      if (removeTitleBar) {
-        newCc['titleBar.activeBackground'] = undefined;
-        newCc['titleBar.activeForeground'] = undefined;
-      }
-
-      if (removeInactiveTitleBar) {
-        newCc['titleBar.inactiveBackground'] = undefined;
-        newCc['titleBar.inactiveForeground'] = undefined;
-      }
-
-      if (removeStatusBar) {
-        newCc['statusBar.background'] = undefined;
-        newCc['statusBar.foreground'] = undefined;
-        newCc['statusBar.debuggingBackground'] = undefined;
-        newCc['statusBar.debuggingForeground'] = undefined;
-        newCc['statusBar.noFolderBackground'] = undefined;
-        newCc['statusBar.noFolderForeground'] = undefined;
-      }
-    }
-
-    effectiveCc = doRemoveColors ? newCc : improveForegrounds(newCc);
+  if (JSON.stringify(effectiveCc) !== JSON.stringify(configuredCc)) {
     await workspace.getConfiguration('workbench').update('colorCustomizations', effectiveCc, false);
   }
-
-  // Build computedColors map for SettingsFileDeleter
-  const computedColors: Record<string, string> = {};
-  for (const key of MANAGED_COLOR_KEYS) {
-    const value = effectiveCc[key];
-    if (value !== undefined) {
-      computedColors[key] = value;
-    }
-  }
-  return computedColors;
 }
 
 // Mapping from old emoji-prefixed setting keys to new camelCase keys.
@@ -448,17 +367,15 @@ export function activate(context: ExtensionContext) {
   const forgetRememberedBackgrounds = (): Thenable<void> =>
     context.globalState.update(preservedBackgroundsStateKey, undefined);
 
-  const applyAndRememberWindowColors = async (): Promise<Record<string, string>> => {
-    const computedColors = await applyWindowColors(workspaceRoot, getRememberedBackgrounds());
+  const applyAndRememberWindowColors = async (): Promise<void> => {
+    await applyWindowColors(workspaceRoot, getRememberedBackgrounds());
     await rememberCurrentBackgrounds();
-    return computedColors;
   };
 
+  context.subscriptions.push(new SettingsFileDeleter(workspaceRoot));
+
   // Migrate old emoji-prefixed settings before applying colors
-  migrateOldSettings(workspaceRoot).then(() => applyAndRememberWindowColors()).then(computedColors => {
-    const settingsFileDeleter = new SettingsFileDeleter(workspaceRoot, computedColors);
-    context.subscriptions.push(settingsFileDeleter);
-  });
+  migrateOldSettings(workspaceRoot).then(() => applyAndRememberWindowColors());
 
   // One-time update notice for users migrating from the old emoji-key versions
   const noticeKey = 'shownUpdateNotice__1_2_9_feb25_4';

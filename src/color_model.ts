@@ -24,7 +24,6 @@ export const MANAGED_COLOR_KEYS: readonly string[] = BACKGROUND_FOREGROUND_PAIRS
 );
 
 const MAX_LUMINOSITY_ITERATIONS = 500;
-const WCAG_AA_CONTRAST = 4.5;
 
 export function getColorWithLuminosity(color: Color, min: number, max: number): Color {
   let candidate: Color = Color(color.hex());
@@ -47,26 +46,13 @@ export function contrastRatio(first: string | Color, second: string | Color): nu
 
 /**
  * Derive a readable foreground from the exact background it will be painted on.
- * Prefer the existing same-hue near-white/near-black treatment when it clears
- * WCAG AA, then fall back to black or white for mid-luminance backgrounds that
- * cannot support a readable tint.
+ * Black or white always provides the strongest available sRGB contrast for an
+ * opaque background; choose the better of those two neutral endpoints.
  */
 export function foregroundFor(background: string): string {
   const backgroundColor = Color(background);
   if (backgroundColor.alpha() < 1) {
     throw new Error('Cannot determine contrast for a translucent background');
-  }
-  const tintedCandidates = [
-    getColorWithLuminosity(backgroundColor, 0.95, 1),
-    getColorWithLuminosity(backgroundColor, 0, 0.01),
-  ];
-  const passingTint = tintedCandidates
-    .map(candidate => ({ candidate, contrast: contrastRatio(backgroundColor, candidate) }))
-    .filter(({ contrast }) => contrast >= WCAG_AA_CONTRAST)
-    .sort((left, right) => right.contrast - left.contrast)[0];
-
-  if (passingTint) {
-    return passingTint.candidate.hex();
   }
 
   const black = Color('#000000');

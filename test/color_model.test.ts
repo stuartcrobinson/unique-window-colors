@@ -11,20 +11,20 @@ import {
 } from '../src/color_model';
 
 describe('foregroundFor', () => {
-  it('reproduces accessible foregrounds for the reported Petrol colors', () => {
-    equal(foregroundFor('#053241'), '#F3FBFE');
-    equal(foregroundFor('#34C1F0'), '#031C25');
-    equal(foregroundFor('#031C25'), '#F7FCFE');
+  it('reproduces optimized foregrounds for the reported Petrol colors', () => {
+    equal(foregroundFor('#053241'), '#FFFFFF');
+    equal(foregroundFor('#34C1F0'), '#000000');
+    equal(foregroundFor('#031C25'), '#FFFFFF');
   });
 
-  it('keeps readable warm tints and falls back only when they cannot clear AA', () => {
+  it('uses the strongest neutral contrast for warm colors', () => {
     equal(foregroundFor('#996A5B'), '#FFFFFF');
-    equal(foregroundFor('#BD7000'), '#261600');
+    equal(foregroundFor('#BD7000'), '#000000');
     equal(foregroundFor('#DE3F24'), '#000000');
-    equal(foregroundFor('#D95D0A'), '#2C1302');
+    equal(foregroundFor('#D95D0A'), '#000000');
   });
 
-  it('clears WCAG AA across a deterministic sRGB grid', () => {
+  it('chooses the maximum-contrast neutral and clears WCAG AA across a deterministic sRGB grid', () => {
     const channelLevels = [0, 51, 102, 153, 204, 255];
     for (const red of channelLevels) {
       for (const green of channelLevels) {
@@ -33,6 +33,13 @@ describe('foregroundFor', () => {
             .map(channel => channel.toString(16).padStart(2, '0'))
             .join('')}`;
           const foreground = foregroundFor(background);
+          const blackContrast = contrastRatio(background, '#000000');
+          const whiteContrast = contrastRatio(background, '#FFFFFF');
+          equal(
+            contrastRatio(background, foreground),
+            Math.max(blackContrast, whiteContrast),
+            `${foreground} should maximize neutral contrast against ${background}`,
+          );
           ok(
             contrastRatio(background, foreground) >= 4.5,
             `${foreground} should clear WCAG AA against ${background}`,
@@ -69,9 +76,9 @@ describe('improveForegrounds', () => {
       }
     }
     equal(improved['editor.background'], '#123456');
-    equal(improved['activityBar.foreground'], '#F3FBFE');
-    equal(improved['activityBar.inactiveForeground'], '#F3FBFE');
-    equal(improved['titleBar.inactiveForeground'], '#F7FCFE');
+    equal(improved['activityBar.foreground'], '#FFFFFF');
+    equal(improved['activityBar.inactiveForeground'], '#FFFFFF');
+    equal(improved['titleBar.inactiveForeground'], '#FFFFFF');
 
     for (const [backgroundKey, foregroundKeys] of BACKGROUND_FOREGROUND_PAIRS) {
       const background = improved[backgroundKey];
@@ -179,7 +186,7 @@ describe('reconcileColorCustomizations', () => {
     equal(result['titleBar.activeBackground'], '#34C1F0');
     equal(result['titleBar.inactiveBackground'], '#031C25');
     equal(result['statusBar.background'], '#996A5B');
-    equal(result['activityBar.foreground'], '#F3FBFE');
+    equal(result['activityBar.foreground'], '#FFFFFF');
   });
 
   it('removes all keys for disabled areas, including orphaned foregrounds', () => {

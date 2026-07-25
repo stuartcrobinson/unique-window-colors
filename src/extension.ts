@@ -127,7 +127,7 @@ export function deriveThemedColors(
 
     // Inactive title bars sit clearly above the dark activity bar while
     // remaining well below the pastel active title bar in perceived brightness.
-    const inactiveTitleBar = getColorWithLuminosity(rawColor, 0.18, 0.24);
+    const inactiveTitleBar = getColorWithLuminosity(rawColor, 0.28, 0.32);
 
     // Status bar = a few shades lighter than the sidebar
     const statusBar = sideBar.lightness(sideBar.lightness() + 4);

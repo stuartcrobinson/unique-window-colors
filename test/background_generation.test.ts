@@ -42,16 +42,16 @@ describe('background generation', () => {
         `${preset.name} inactive title should be darker than its active title`,
       );
       ok(
-        derived.inactiveTitleBar.luminosity() >= 0.18 &&
-          derived.inactiveTitleBar.luminosity() <= 0.24,
+        derived.inactiveTitleBar.luminosity() >= 0.28 &&
+          derived.inactiveTitleBar.luminosity() <= 0.32,
         `${preset.name} inactive title should be considerably brighter`,
       );
 
       const background = derived.inactiveTitleBar.hex();
       const foreground = foregroundFor(background);
       ok(
-        contrastRatio(background, foreground) >= 4.5,
-        `${preset.name} inactive title pair should clear WCAG AA`,
+        contrastRatio(background, foreground) >= 6.5,
+        `${preset.name} inactive title pair should comfortably clear WCAG AA`,
       );
     }
   });

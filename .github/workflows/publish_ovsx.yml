@@ -55,10 +55,10 @@ jobs:
 
       - name: Publish the inspected VSIX to Open VSX
         env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+          OVSX_PAT: ${{ secrets.OVSX_TOKEN }}
         run: |
           if [[ -z "${OVSX_PAT}" ]]; then
-            echo "Repository secret OVSX_PAT is required" >&2
+            echo "Repository secret OVSX_TOKEN is required" >&2
             exit 1
           fi
           ./node_modules/.bin/ovsx publish "${VSIX_PATH}"

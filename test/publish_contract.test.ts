@@ -28,7 +28,8 @@ describe('registry publish contract', () => {
 
   it('publishes releases through the canonical pre-existing namespace', () => {
     ok(openVsxWorkflow.includes('release:'));
-    ok(openVsxWorkflow.includes('OVSX_PAT'));
+    ok(openVsxWorkflow.includes('OVSX_PAT: ${{ secrets.OVSX_TOKEN }}'));
+    equal(openVsxWorkflow.includes('secrets.OVSX_PAT'), false);
     ok(openVsxWorkflow.includes('ovsx publish'));
     ok(openVsxWorkflow.includes('github.event.release.tag_name'));
     equal(openVsxWorkflow.includes('create-namespace'), false);

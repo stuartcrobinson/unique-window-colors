@@ -37,11 +37,12 @@ by `src/color_model.ts` and its tests.
 - [ ] Confirm the canonical publisher/namespace is `stuart` in both registries.
 - [ ] Keep the duplicate `stuartcrobinson` Open VSX namespace cleanup separate
       from the release itself.
-- [ ] Confirm the Open VSX account is linked to the matching Eclipse account and
-      the Open VSX Publisher Agreement is signed.
-- [ ] Add a repository Actions secret named `OVSX_PAT` using a dedicated Open VSX
-      access token. The workflow reads the CLI's supported `OVSX_PAT` environment
-      variable and never places the token on the command line.
+- [x] Operator confirmed the Open VSX account is linked to the matching Eclipse
+      account and the Open VSX Publisher Agreement is signed.
+- [x] Reuse the existing repository Actions secret named `OVSX_TOKEN`. The
+      workflow maps it to the CLI's supported `OVSX_PAT` environment variable and
+      never places the token on the command line. GitHub does not expose secret
+      values, so the next publish remains the definitive token-validity check.
 
 ## Publish
 

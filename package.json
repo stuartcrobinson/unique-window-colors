@@ -103,10 +103,11 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm test && npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "test": "npm run compile"
+    "test": "npm run test:unit",
+    "test:unit": "tsc -p tsconfig.test.json && node --test .test-out/test/**/*.test.js"
   },
   "devDependencies": {
     "@types/color": "^3.0.0",

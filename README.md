@@ -14,6 +14,7 @@ This extension gives each new VS Code window a unique color based on a hash of t
 ```javascript
   "workbench.colorCustomizations": {
     "activityBar.background": "#13332E",
+    "activityBar.foreground": "#F6FBFB",
     "titleBar.activeBackground": "#19423B",
     "titleBar.activeForeground": "#F6FBFB"
   }
@@ -38,6 +39,10 @@ To avoid checking `.vscode/settings.json` in to your remote repository without m
 ## Usage
 
 Colors do not get overwritten.  This allows you to set custom colors (or a single Base Color).  To switch between light and dark themed colors, you must first delete the current colors from `.vscode/settings.json`.  You can do this manually or by or selecting `remove` in the extension's `Window Colors: Theme` settings and reloading the VS Code window.
+
+On extension updates, existing background colors remain unchanged even if their
+old base color is no longer offered in the preset picker. Foreground colors are
+automatically refreshed for readable contrast against those backgrounds.
 
 <!-- <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/> -->
 

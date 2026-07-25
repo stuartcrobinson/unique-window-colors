@@ -3,9 +3,18 @@ import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const randomSeed = require('random-seed');
 import { ConfigurationTarget, ExtensionContext, workspace, WorkspaceFolder, commands, window, ColorThemeKind } from 'vscode';
+import {
+  ColorCustomizations,
+  extractBackgrounds,
+  getColorWithLuminosity,
+  improveForegrounds,
+  mergePreservedBackgrounds,
+} from './color_model';
 
 const MANAGED_COLOR_KEYS = [
   'activityBar.background',
+  'activityBar.foreground',
+  'activityBar.inactiveForeground',
   'titleBar.activeBackground',
   'titleBar.activeForeground',
   'titleBar.inactiveBackground',
@@ -66,9 +75,7 @@ const BASE_COLORS = [
 interface DerivedColors {
   sideBar: Color;
   titleBar: Color;
-  titleBarText: Color;
   statusBar: Color;
-  statusBarText: Color;
 }
 
 // Resolve the theme setting: "auto" detects from VS Code's active color theme.
@@ -81,7 +88,7 @@ function resolveTheme(setting: string | undefined): string | undefined {
   return setting;
 }
 
-// Derive themed sidebar, title bar, and title bar text colors from a raw base color.
+// Derive themed bar backgrounds from a raw base color.
 // When respectExtremes is true, colors already beyond the dark/light threshold are
 // kept as-is (used for user-chosen baseColor overrides like Black or White).
 function deriveThemedColors(rawColor: Color, theme: string | undefined, respectExtremes = false): DerivedColors {
@@ -108,9 +115,7 @@ function deriveThemedColors(rawColor: Color, theme: string | undefined, respectE
     return {
       sideBar,
       titleBar: sideBar.lighten(0.4),
-      titleBarText: getColorWithLuminosity(sideBar, 0.95, 1),
       statusBar: sideBar,
-      statusBarText: getColorWithLuminosity(sideBar, 0.95, 1),
     };
   }
 
@@ -133,23 +138,16 @@ function deriveThemedColors(rawColor: Color, theme: string | undefined, respectE
     return {
       sideBar,
       titleBar,
-      titleBarText: getColorWithLuminosity(titleBar, 0, 0.01),
       statusBar,
-      statusBarText: getColorWithLuminosity(statusBar, 0.95, 1),
     };
   }
 
   // No theme (raw color mode)
   const titleBar = rawColor.lighten(0.3);
-  const titleBarText = titleBar.luminosity() > 0.5
-    ? getColorWithLuminosity(rawColor, 0, 0.01)
-    : getColorWithLuminosity(rawColor, 0.95, 1);
   return {
     sideBar: rawColor,
     titleBar,
-    titleBarText,
     statusBar: rawColor,
-    statusBarText: titleBarText,
   };
 }
 
@@ -198,7 +196,10 @@ export class SettingsFileDeleter {
   }
 }
 
-async function applyWindowColors(workspaceRoot: string): Promise<Record<string, string>> {
+async function applyWindowColors(
+  workspaceRoot: string,
+  preservedBackgrounds?: ColorCustomizations,
+): Promise<Record<string, string>> {
 
   const neverColor = workspace.getConfiguration('windowColors').get<boolean>('neverColorThisWindow') ?? false;
   if (neverColor) {
@@ -227,7 +228,13 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
   const colorStatusBar = workspace.getConfiguration('windowColors').get<boolean>('colorStatusBar') ?? true;
 
   // Retain initial unrelated colorCustomizations
-  const cc = JSON.parse(JSON.stringify(workspace.getConfiguration('workbench').get('colorCustomizations') || {}));
+  const configuredCc = JSON.parse(JSON.stringify(
+    workspace.getConfiguration('workbench').get('colorCustomizations') || {}
+  )) as ColorCustomizations;
+  const cc = mergePreservedBackgrounds(configuredCc, preservedBackgrounds);
+  const restoredBackground = Object.keys(extractBackgrounds(cc)).some(
+    key => configuredCc[key] === undefined,
+  );
 
   let derived: DerivedColors;
 
@@ -253,68 +260,77 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
     derived = deriveThemedColors(rawColor, extensionTheme);
   }
 
-  const { sideBar: sideBarColor, titleBar: titleBarColor, titleBarText: titleBarTextColor,
-    statusBar: statusBarColor, statusBarText: statusBarTextColor } = derived;
+  const { sideBar: sideBarColor, titleBar: titleBarColor, statusBar: statusBarColor } = derived;
 
   const doRemoveColors = extensionTheme === 'remove';
 
-  // For each area, determine whether to apply or remove colors.
-  // We avoid overwriting existing (possibly user-customised) colors unless baseColor is set.
-  const applyActivityBar = !doRemoveColors && colorActivityBar && (!cc['activityBar.background'] || !!baseColor);
+  // Existing backgrounds are authoritative, even if their old base color is no
+  // longer in BASE_COLORS. Generated backgrounds fill missing roles only.
+  const generatedBackgrounds: ColorCustomizations = {};
+  if (!doRemoveColors && colorActivityBar) {
+    generatedBackgrounds['activityBar.background'] = sideBarColor.hex();
+  }
+  if (!doRemoveColors && colorTitleBar) {
+    generatedBackgrounds['titleBar.activeBackground'] = titleBarColor.hex();
+    generatedBackgrounds['titleBar.inactiveBackground'] = sideBarColor.hex();
+  }
+  if (!doRemoveColors && colorStatusBar) {
+    generatedBackgrounds['statusBar.background'] = statusBarColor.hex();
+    generatedBackgrounds['statusBar.debuggingBackground'] = statusBarColor.hex();
+    generatedBackgrounds['statusBar.noFolderBackground'] = statusBarColor.hex();
+  }
+  const ccWithGeneratedBackgrounds = mergePreservedBackgrounds(cc, generatedBackgrounds);
+  const addedBackground = Object.keys(generatedBackgrounds).some(
+    key => cc[key] === undefined && ccWithGeneratedBackgrounds[key] !== undefined,
+  );
+
+  // For each area, determine whether to remove colors that were switched off.
   const removeActivityBar = !doRemoveColors && !colorActivityBar && !!cc['activityBar.background'];
-
-  const applyTitleBar = !doRemoveColors && colorTitleBar && (!cc['titleBar.activeBackground'] || !!baseColor);
   const removeTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.activeBackground'];
-
-  const applyInactiveTitleBar = !doRemoveColors && colorTitleBar && (applyTitleBar || !cc['titleBar.inactiveBackground']);
   const removeInactiveTitleBar = !doRemoveColors && !colorTitleBar && !!cc['titleBar.inactiveBackground'];
+  const removeStatusBar = !doRemoveColors && !colorStatusBar && (
+    !!cc['statusBar.background'] || !!cc['statusBar.debuggingBackground'] ||
+    !!cc['statusBar.noFolderBackground']
+  );
 
-  const applyStatusBar = !doRemoveColors && colorStatusBar && (!cc['statusBar.background'] || !!baseColor);
-  const removeStatusBar = !doRemoveColors && !colorStatusBar && !!cc['statusBar.background'];
+  const improveExistingForegrounds = !doRemoveColors && (
+    (colorActivityBar && !!ccWithGeneratedBackgrounds['activityBar.background']) ||
+    (colorTitleBar && (!!ccWithGeneratedBackgrounds['titleBar.activeBackground'] ||
+      !!ccWithGeneratedBackgrounds['titleBar.inactiveBackground'])) ||
+    (colorStatusBar && (!!ccWithGeneratedBackgrounds['statusBar.background'] ||
+      !!ccWithGeneratedBackgrounds['statusBar.debuggingBackground'] ||
+      !!ccWithGeneratedBackgrounds['statusBar.noFolderBackground']))
+  );
 
-  const anyChange = doRemoveColors || applyActivityBar || removeActivityBar ||
-    applyTitleBar || removeTitleBar || applyInactiveTitleBar || removeInactiveTitleBar ||
-    applyStatusBar || removeStatusBar;
+  const anyChange = doRemoveColors || restoredBackground || improveExistingForegrounds ||
+    addedBackground || removeActivityBar || removeTitleBar || removeInactiveTitleBar || removeStatusBar;
 
+  let effectiveCc = { ...ccWithGeneratedBackgrounds };
   if (anyChange) {
-
-    const newCc = { ...cc };
+    const newCc = { ...ccWithGeneratedBackgrounds };
 
     if (doRemoveColors) {
       for (const key of MANAGED_COLOR_KEYS) {
         newCc[key] = undefined;
       }
     } else {
-      if (applyActivityBar) {
-        newCc['activityBar.background'] = sideBarColor.hex();
-      } else if (removeActivityBar) {
+      if (removeActivityBar) {
         newCc['activityBar.background'] = undefined;
+        newCc['activityBar.foreground'] = undefined;
+        newCc['activityBar.inactiveForeground'] = undefined;
       }
 
-      if (applyTitleBar) {
-        newCc['titleBar.activeBackground'] = titleBarColor.hex();
-        newCc['titleBar.activeForeground'] = titleBarTextColor.hex();
-      } else if (removeTitleBar) {
+      if (removeTitleBar) {
         newCc['titleBar.activeBackground'] = undefined;
         newCc['titleBar.activeForeground'] = undefined;
       }
 
-      if (applyInactiveTitleBar) {
-        newCc['titleBar.inactiveBackground'] = sideBarColor.hex();
-        newCc['titleBar.inactiveForeground'] = titleBarTextColor.hex();
-      } else if (removeInactiveTitleBar) {
+      if (removeInactiveTitleBar) {
         newCc['titleBar.inactiveBackground'] = undefined;
         newCc['titleBar.inactiveForeground'] = undefined;
       }
 
-      if (applyStatusBar) {
-        newCc['statusBar.background'] = statusBarColor.hex();
-        newCc['statusBar.foreground'] = statusBarTextColor.hex();
-        newCc['statusBar.debuggingBackground'] = statusBarColor.hex();
-        newCc['statusBar.debuggingForeground'] = statusBarTextColor.hex();
-        newCc['statusBar.noFolderBackground'] = statusBarColor.hex();
-        newCc['statusBar.noFolderForeground'] = statusBarTextColor.hex();
-      } else if (removeStatusBar) {
+      if (removeStatusBar) {
         newCc['statusBar.background'] = undefined;
         newCc['statusBar.foreground'] = undefined;
         newCc['statusBar.debuggingBackground'] = undefined;
@@ -324,27 +340,17 @@ async function applyWindowColors(workspaceRoot: string): Promise<Record<string, 
       }
     }
 
-    await workspace.getConfiguration('workbench').update('colorCustomizations', newCc, false);
+    effectiveCc = doRemoveColors ? newCc : improveForegrounds(newCc);
+    await workspace.getConfiguration('workbench').update('colorCustomizations', effectiveCc, false);
   }
 
   // Build computedColors map for SettingsFileDeleter
   const computedColors: Record<string, string> = {};
-  if (colorActivityBar) {
-    computedColors['activityBar.background'] = sideBarColor.hex();
-  }
-  if (colorTitleBar) {
-    computedColors['titleBar.activeBackground'] = titleBarColor.hex();
-    computedColors['titleBar.activeForeground'] = titleBarTextColor.hex();
-    computedColors['titleBar.inactiveBackground'] = sideBarColor.hex();
-    computedColors['titleBar.inactiveForeground'] = titleBarTextColor.hex();
-  }
-  if (colorStatusBar) {
-    computedColors['statusBar.background'] = statusBarColor.hex();
-    computedColors['statusBar.foreground'] = statusBarTextColor.hex();
-    computedColors['statusBar.debuggingBackground'] = statusBarColor.hex();
-    computedColors['statusBar.debuggingForeground'] = statusBarTextColor.hex();
-    computedColors['statusBar.noFolderBackground'] = statusBarColor.hex();
-    computedColors['statusBar.noFolderForeground'] = statusBarTextColor.hex();
+  for (const key of MANAGED_COLOR_KEYS) {
+    const value = effectiveCc[key];
+    if (value !== undefined) {
+      computedColors[key] = value;
+    }
   }
   return computedColors;
 }
@@ -360,6 +366,8 @@ const SETTINGS_MIGRATIONS: [string, string][] = [
   ['🌈 ColorStatusBar', 'colorStatusBar'],
   ['🌈 NeverColorThisWindow', 'neverColorThisWindow'],
 ];
+
+const PRESERVED_BACKGROUNDS_STATE_PREFIX = 'preservedBackgroundsV1';
 
 /**
  * Migrate old emoji-prefixed settings (e.g. "windowColors.🌈 Theme") to new
@@ -421,9 +429,33 @@ export function activate(context: ExtensionContext) {
   }
 
   const workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
+  const workspaceIdentity = workspace.workspaceFolders[0].uri.toString();
+  const preservedBackgroundsStateKey = `${PRESERVED_BACKGROUNDS_STATE_PREFIX}:${workspaceIdentity}`;
+
+  const getRememberedBackgrounds = (): ColorCustomizations | undefined =>
+    context.globalState.get<ColorCustomizations>(preservedBackgroundsStateKey);
+
+  const rememberCurrentBackgrounds = async (): Promise<void> => {
+    const current = workspace.getConfiguration('workbench')
+      .get<ColorCustomizations>('colorCustomizations') || {};
+    const backgrounds = extractBackgrounds(current);
+    await context.globalState.update(
+      preservedBackgroundsStateKey,
+      Object.keys(backgrounds).length > 0 ? backgrounds : undefined,
+    );
+  };
+
+  const forgetRememberedBackgrounds = (): Thenable<void> =>
+    context.globalState.update(preservedBackgroundsStateKey, undefined);
+
+  const applyAndRememberWindowColors = async (): Promise<Record<string, string>> => {
+    const computedColors = await applyWindowColors(workspaceRoot, getRememberedBackgrounds());
+    await rememberCurrentBackgrounds();
+    return computedColors;
+  };
 
   // Migrate old emoji-prefixed settings before applying colors
-  migrateOldSettings(workspaceRoot).then(() => applyWindowColors(workspaceRoot)).then(computedColors => {
+  migrateOldSettings(workspaceRoot).then(() => applyAndRememberWindowColors()).then(computedColors => {
     const settingsFileDeleter = new SettingsFileDeleter(workspaceRoot, computedColors);
     context.subscriptions.push(settingsFileDeleter);
   });
@@ -456,7 +488,7 @@ export function activate(context: ExtensionContext) {
     window.onDidChangeActiveColorTheme(() => {
       const themeSetting = workspace.getConfiguration('windowColors').get<string>('theme');
       if (!themeSetting || themeSetting === 'auto') {
-        applyWindowColors(workspaceRoot);
+        applyAndRememberWindowColors();
       }
     })
   );
@@ -538,19 +570,19 @@ export function activate(context: ExtensionContext) {
 
     if (picked.action === 'toggleTitleBar') {
       await cfg.update('colorTitleBar', !curTitleBar, false);
-      await applyWindowColors(workspaceRoot);
+      await applyAndRememberWindowColors();
 
     } else if (picked.action === 'toggleActivityBar') {
       await cfg.update('colorActivityBar', !curActivityBar, false);
-      await applyWindowColors(workspaceRoot);
+      await applyAndRememberWindowColors();
 
     } else if (picked.action === 'toggleStatusBar') {
       await cfg.update('colorStatusBar', !curStatusBar, false);
-      await applyWindowColors(workspaceRoot);
+      await applyAndRememberWindowColors();
 
     } else if (picked.action === 'toggleNeverColor') {
       await cfg.update('neverColorThisWindow', !curNeverColor, false);
-      await applyWindowColors(workspaceRoot);
+      await applyAndRememberWindowColors();
 
     } else if (picked.action === 'pickColor') {
       commands.executeCommand('windowColors.pickBaseColor');
@@ -565,7 +597,7 @@ export function activate(context: ExtensionContext) {
       const themePicked = await window.showQuickPick(themeItems, { placeHolder: 'Select theme' });
       if (!themePicked) { return; }
       await cfg.update('theme', themePicked.value, false);
-      await applyWindowColors(workspaceRoot);
+      await applyAndRememberWindowColors();
 
     } else if (picked.action === 'resetColors') {
       commands.executeCommand('windowColors.resetColors');
@@ -605,7 +637,7 @@ export function activate(context: ExtensionContext) {
     ));
 
     const applyHex = async (hex: string) => {
-      const { sideBar, titleBar, titleBarText, statusBar, statusBarText } = deriveThemedColors(Color(hex), currentTheme, true);
+      const { sideBar, titleBar, statusBar } = deriveThemedColors(Color(hex), currentTheme, true);
 
       const newCc = { ...originalCc };
       if (currentColorActivityBar) {
@@ -613,19 +645,18 @@ export function activate(context: ExtensionContext) {
       }
       if (currentColorTitleBar) {
         newCc['titleBar.activeBackground'] = titleBar.hex();
-        newCc['titleBar.activeForeground'] = titleBarText.hex();
         newCc['titleBar.inactiveBackground'] = sideBar.hex();
-        newCc['titleBar.inactiveForeground'] = titleBarText.hex();
       }
       if (currentColorStatusBar) {
         newCc['statusBar.background'] = statusBar.hex();
-        newCc['statusBar.foreground'] = statusBarText.hex();
         newCc['statusBar.debuggingBackground'] = statusBar.hex();
-        newCc['statusBar.debuggingForeground'] = statusBarText.hex();
         newCc['statusBar.noFolderBackground'] = statusBar.hex();
-        newCc['statusBar.noFolderForeground'] = statusBarText.hex();
       }
-      await workspace.getConfiguration('workbench').update('colorCustomizations', newCc, false);
+      await workspace.getConfiguration('workbench').update(
+        'colorCustomizations',
+        improveForegrounds(newCc),
+        false,
+      );
     };
 
     const qp = window.createQuickPick();
@@ -673,6 +704,7 @@ export function activate(context: ExtensionContext) {
       }
 
       await workspace.getConfiguration('windowColors').update('baseColor', hexValue === null ? undefined : hexValue, false);
+      await rememberCurrentBackgrounds();
     });
 
     qp.onDidHide(() => {
@@ -717,7 +749,8 @@ export function activate(context: ExtensionContext) {
     await workspace.getConfiguration('workbench').update('colorCustomizations',
       Object.keys(cc).length > 0 ? cc : undefined, false);
 
-    await applyWindowColors(workspaceRoot);
+    await forgetRememberedBackgrounds();
+    await applyAndRememberWindowColors();
     const pk = process.platform === 'darwin' ? 'Cmd+Shift+P' : 'Ctrl+Shift+P';
     window.showInformationMessage(`Window colors reset. For more options: ${pk} → "Window Colors".`);
   });
@@ -727,6 +760,8 @@ export function activate(context: ExtensionContext) {
   const removeColorsDisposable = commands.registerCommand('windowColors.removeColors', async () => {
     const settingsFile = workspaceRoot + '/.vscode/settings.json';
     const vscodeDir = workspaceRoot + '/.vscode';
+
+    await forgetRememberedBackgrounds();
 
     if (!fs.existsSync(settingsFile)) {
       window.showInformationMessage('No workspace settings file found — nothing to remove.');
@@ -771,20 +806,6 @@ export function activate(context: ExtensionContext) {
   });
 
   context.subscriptions.push(removeColorsDisposable);
-}
-
-const MAX_LUMINOSITY_ITERATIONS = 500;
-
-function getColorWithLuminosity(color: Color, min: number, max: number): Color {
-  let c: Color = Color(color.hex());
-  let iterations = 0;
-  while (c.luminosity() > max && iterations++ < MAX_LUMINOSITY_ITERATIONS) {
-    c = c.darken(0.01);
-  }
-  while (c.luminosity() < min && iterations++ < MAX_LUMINOSITY_ITERATIONS) {
-    c = c.lighten(0.01);
-  }
-  return c;
 }
 
 export function getWorkspaceFolder(folders: readonly WorkspaceFolder[] | undefined): string {

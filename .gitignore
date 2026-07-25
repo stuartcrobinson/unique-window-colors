@@ -1,7 +1,7 @@
 out
+.test-out
 node_modules
 .vscode-test/
 *.vsix
 asdf.html
-
 

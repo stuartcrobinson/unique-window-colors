@@ -3,6 +3,9 @@
 You MUST run the relevant checks below after every code change, even for seemingly simple edits:
 
 ```bash
+# Unit tests for color behavior and persistence
+npm test
+
 # Type check
 npx tsc --noEmit
 ```
@@ -13,17 +16,17 @@ Ask first: npm install, vsce package, git push, deleting files
 
 ## Colour model work
 
-`HANDOFF_color_v2.md` is the entry point for the contrast/palette work
-(issues #58, #69, #70, #71, #73). Read it before touching `deriveThemedColors`
-or `BASE_COLORS` in `src/extension.ts`.
+`src/color_model.ts` is the single owner for foreground derivation, contrast,
+and background snapshot/restore behavior. `src/extension.ts` continues to own
+background generation for new workspaces.
 
-Design instruments (not shipped — excluded via `.vscodeignore`):
+Preserve these invariants:
 
-```bash
-python3 tools/audit_contrast.py      # audits the CURRENT v1.2.9 algorithm
-python3 tools/palette_lab.py         # audits the PROPOSED v2 model
-python3 tools/palette_lab.py --frontier   # contrast-vs-bar-lightness curve
-python3 tools/build_preview.py       # regenerates palette_preview.html
-```
+- Existing background strings are authoritative and must not be replaced on
+  activation or upgrade, even when they are absent from `BASE_COLORS`.
+- Foregrounds are derived from the exact background role where they are used.
+- Every generated foreground must clear WCAG AA contrast (4.5:1).
+- Keep validation in TypeScript against the shipping implementation; do not add
+  a parallel palette engine in another language.
 
-Both audit scripts exit non-zero on failure, so they can gate CI.
+See `RELEASE_CHECKLIST.md` for the remaining marketplace work.

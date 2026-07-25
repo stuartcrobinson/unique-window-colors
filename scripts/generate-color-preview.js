@@ -64,7 +64,7 @@ function presetCard(preset, mode) {
   const derived = deriveThemedColors(Color(preset.hex), mode, true);
   const activity = derived.sideBar.hex();
   const titleActive = derived.titleBar.hex();
-  const titleInactive = derived.sideBar.hex();
+  const titleInactive = derived.inactiveTitleBar.hex();
   const status = derived.statusBar.hex();
 
   return `

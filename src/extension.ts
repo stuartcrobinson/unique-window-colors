@@ -62,6 +62,7 @@ export const BASE_COLORS = [
 export interface DerivedColors {
   sideBar: Color;
   titleBar: Color;
+  inactiveTitleBar: Color;
   statusBar: Color;
 }
 
@@ -106,6 +107,7 @@ export function deriveThemedColors(
     return {
       sideBar,
       titleBar: sideBar.lighten(0.4),
+      inactiveTitleBar: sideBar,
       statusBar: sideBar,
     };
   }
@@ -123,12 +125,17 @@ export function deriveThemedColors(
       ? rawColor
       : getColorWithLuminosity(rawColor, ltMin, ltMax);
 
+    // Keep inactive windows distinct from the pastel active title bar, but
+    // soften the dark sidebar-derived color slightly against a light theme.
+    const inactiveTitleBar = sideBar.lightness(sideBar.lightness() + 4);
+
     // Status bar = a few shades lighter than the sidebar
     const statusBar = sideBar.lightness(sideBar.lightness() + 4);
 
     return {
       sideBar,
       titleBar,
+      inactiveTitleBar,
       statusBar,
     };
   }
@@ -138,6 +145,7 @@ export function deriveThemedColors(
   return {
     sideBar: rawColor,
     titleBar,
+    inactiveTitleBar: rawColor,
     statusBar: rawColor,
   };
 }
@@ -243,7 +251,12 @@ async function applyWindowColors(
     derived = deriveThemedColors(rawColor, extensionTheme);
   }
 
-  const { sideBar: sideBarColor, titleBar: titleBarColor, statusBar: statusBarColor } = derived;
+  const {
+    sideBar: sideBarColor,
+    titleBar: titleBarColor,
+    inactiveTitleBar: inactiveTitleBarColor,
+    statusBar: statusBarColor,
+  } = derived;
 
   const doRemoveColors = extensionTheme === 'remove';
 
@@ -255,7 +268,7 @@ async function applyWindowColors(
   }
   if (!doRemoveColors && colorTitleBar) {
     generatedBackgrounds['titleBar.activeBackground'] = titleBarColor.hex();
-    generatedBackgrounds['titleBar.inactiveBackground'] = sideBarColor.hex();
+    generatedBackgrounds['titleBar.inactiveBackground'] = inactiveTitleBarColor.hex();
   }
   if (!doRemoveColors && colorStatusBar) {
     generatedBackgrounds['statusBar.background'] = statusBarColor.hex();
@@ -558,7 +571,8 @@ export function activate(context: ExtensionContext) {
     ));
 
     const applyHex = async (hex: string) => {
-      const { sideBar, titleBar, statusBar } = deriveThemedColors(Color(hex), currentTheme, true);
+      const { sideBar, titleBar, inactiveTitleBar, statusBar } =
+        deriveThemedColors(Color(hex), currentTheme, true);
 
       const newCc = { ...originalCc };
       if (currentColorActivityBar) {
@@ -566,7 +580,7 @@ export function activate(context: ExtensionContext) {
       }
       if (currentColorTitleBar) {
         newCc['titleBar.activeBackground'] = titleBar.hex();
-        newCc['titleBar.inactiveBackground'] = sideBar.hex();
+        newCc['titleBar.inactiveBackground'] = inactiveTitleBar.hex();
       }
       if (currentColorStatusBar) {
         newCc['statusBar.background'] = statusBar.hex();

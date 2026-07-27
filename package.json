@@ -109,7 +109,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "test": "npm run preview:check && npm run test:unit",
-    "test:unit": "tsc -p tsconfig.test.json && node --test .test-out/test/**/*.test.js",
+    "test:unit": "tsc -p tsconfig.test.json && node --test $(find .test-out/test -name '*.test.js')",
     "preview:generate": "npm run compile && node scripts/generate-color-preview.js",
     "preview:check": "npm run compile && node scripts/generate-color-preview.js --check",
     "package:vsix": "vsce package"

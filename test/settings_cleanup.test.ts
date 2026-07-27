@@ -1,6 +1,33 @@
 import { deepStrictEqual } from 'assert';
 import { describe, it } from 'node:test';
-import { removeManagedColorCustomizations } from '../src/settings_cleanup';
+import { parseWorkspaceBackgrounds, removeManagedColorCustomizations } from '../src/settings_cleanup';
+
+describe('parseWorkspaceBackgrounds', () => {
+  it('recovers the backgrounds a workspace already has on disk', () => {
+    const raw = JSON.stringify({
+      'workbench.colorCustomizations': {
+        'activityBar.background': '#410A56',
+        'titleBar.activeBackground': '#5A0E78',
+        'titleBar.activeForeground': '#FEFBFF',
+        'editor.background': '#123456',
+      },
+    });
+
+    // Foregrounds and unrelated colors are excluded; backgrounds survive exactly.
+    deepStrictEqual(parseWorkspaceBackgrounds(raw), {
+      'activityBar.background': '#410A56',
+      'titleBar.activeBackground': '#5A0E78',
+    });
+  });
+
+  it('reports nothing rather than throwing for unusable settings files', () => {
+    deepStrictEqual(parseWorkspaceBackgrounds('{ "trailing": "comma", }'), {});
+    deepStrictEqual(parseWorkspaceBackgrounds('// comments are legal in settings.json'), {});
+    deepStrictEqual(parseWorkspaceBackgrounds('{}'), {});
+    deepStrictEqual(parseWorkspaceBackgrounds('{"workbench.colorCustomizations": []}'), {});
+    deepStrictEqual(parseWorkspaceBackgrounds('{"workbench.colorCustomizations": "nope"}'), {});
+  });
+});
 
 describe('removeManagedColorCustomizations', () => {
   it('removes extension colors without deleting unrelated workspace settings', () => {

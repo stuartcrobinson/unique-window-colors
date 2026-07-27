@@ -13,7 +13,11 @@ import {
   parseBaseColor,
   reconcileColorCustomizations,
 } from './color_model';
-import { removeManagedColorCustomizations, WorkspaceSettings } from './settings_cleanup';
+import {
+  parseWorkspaceBackgrounds,
+  removeManagedColorCustomizations,
+  WorkspaceSettings,
+} from './settings_cleanup';
 
 export const BASE_COLORS = [
   // Reds & Pinks
@@ -191,6 +195,19 @@ export class SettingsFileDeleter {
   }
 }
 
+/** Managed backgrounds currently written to this workspace's settings file. */
+function readWorkspaceBackgrounds(workspaceRoot: string): ColorCustomizations {
+  const settingsFile = workspaceRoot + '/.vscode/settings.json';
+  try {
+    if (!fs.existsSync(settingsFile)) {
+      return {};
+    }
+    return parseWorkspaceBackgrounds(fs.readFileSync(settingsFile, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
 async function applyWindowColors(
   workspaceRoot: string,
   preservedBackgrounds?: ColorCustomizations,
@@ -226,7 +243,16 @@ async function applyWindowColors(
   const configuredCc = JSON.parse(JSON.stringify(
     workspace.getConfiguration('workbench').get('colorCustomizations') || {}
   )) as ColorCustomizations;
-  const cc = mergePreservedBackgrounds(configuredCc, preservedBackgrounds);
+
+  // The configuration API can report no color customizations during the first
+  // activation after an update, which would regenerate backgrounds the user
+  // already has. Treat the settings file on disk as the authority, then fill
+  // any gaps from the backgrounds remembered for this workspace.
+  const knownBackgrounds = mergePreservedBackgrounds(
+    readWorkspaceBackgrounds(workspaceRoot),
+    preservedBackgrounds,
+  );
+  const cc = mergePreservedBackgrounds(configuredCc, knownBackgrounds);
 
   let derived: DerivedColors;
 
@@ -288,7 +314,7 @@ async function applyWindowColors(
   }
   const effectiveCc = reconcileColorCustomizations(
     configuredCc,
-    preservedBackgrounds,
+    knownBackgrounds,
     generatedBackgrounds,
     {
       activityBar: colorActivityBar,

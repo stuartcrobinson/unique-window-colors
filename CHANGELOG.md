@@ -13,6 +13,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   color is theme-dependent.
 - Add activity-bar foreground colors and WCAG AA regression coverage.
 - Remove managed color keys safely without deleting unrelated workspace settings.
+- Stop deleting `.vscode/settings.json` when a window closes. Earlier versions
+  removed the file whenever it held nothing but generated colors, even with
+  **Delete Settings File Upon Exit** turned off, which discarded each window's
+  colors on every close. Removal now happens only when that setting is enabled.
+- Recover existing backgrounds from the workspace settings file when the
+  configuration API reports none, which can happen on the first activation
+  after an update.
 - Ignore an unusable `windowColors.baseColor` and fall back to the window's
   generated color, instead of leaving the window with no colors at all.
 - Make `windowColors.deleteSettingsFileUponExit` machine-scoped so it can only be

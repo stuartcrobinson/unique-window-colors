@@ -3,7 +3,7 @@ All notable changes to the "unique-window-colors" extension will be documented i
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.2.10] - 2026-07-27
 
 - Preserve existing workspace background colors across extension updates, even
   when their original base color is no longer in the preset palette.

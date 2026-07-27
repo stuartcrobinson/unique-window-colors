@@ -10,6 +10,7 @@ import {
   improveForegrounds,
   MANAGED_COLOR_KEYS,
   mergePreservedBackgrounds,
+  parseBaseColor,
   reconcileColorCustomizations,
 } from './color_model';
 import { removeManagedColorCustomizations, WorkspaceSettings } from './settings_cleanup';
@@ -229,8 +230,18 @@ async function applyWindowColors(
 
   let derived: DerivedColors;
 
-  if (baseColor) {
-    derived = deriveThemedColors(Color(baseColor), extensionTheme, true);
+  // An unusable baseColor must fall back to the generated color rather than
+  // rejecting and leaving the window with no colors at all.
+  const explicitBaseColor = baseColor ? parseBaseColor(baseColor) : undefined;
+  if (baseColor && !explicitBaseColor) {
+    window.showWarningMessage(
+      `Window Colors: "${baseColor}" is not a valid color, so this window's generated color was used instead. ` +
+      'Use "Window Colors: Set Base Color" to choose a different one.',
+    );
+  }
+
+  if (explicitBaseColor) {
+    derived = deriveThemedColors(explicitBaseColor, extensionTheme, true);
   } else {
     // Include URI authority in the seed so that the same folder path opened on
     // different remote-SSH hosts produces a distinct color (issue #52).

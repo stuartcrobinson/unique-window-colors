@@ -7,8 +7,23 @@ import {
   foregroundFor,
   improveForegrounds,
   mergePreservedBackgrounds,
+  parseBaseColor,
   reconcileColorCustomizations,
 } from '../src/color_model';
+
+describe('parseBaseColor', () => {
+  it('accepts the color forms the setting documents', () => {
+    equal(parseBaseColor('whitesmoke')?.hex(), '#F5F5F5');
+    equal(parseBaseColor('#ffffff')?.hex(), '#FFFFFF');
+    equal(parseBaseColor('#c0392b')?.hex(), '#C0392B');
+  });
+
+  it('returns undefined for values that would otherwise abort coloring', () => {
+    for (const invalid of ['not-a-color', '#ggg', '#12345', 'rgb(', 'grey1']) {
+      equal(parseBaseColor(invalid), undefined, invalid);
+    }
+  });
+});
 
 describe('foregroundFor', () => {
   it('reproduces optimized foregrounds for the reported Petrol colors', () => {

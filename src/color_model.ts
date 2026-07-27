@@ -23,6 +23,18 @@ export const MANAGED_COLOR_KEYS: readonly string[] = BACKGROUND_FOREGROUND_PAIRS
   [],
 );
 
+/**
+ * Parse a base color supplied through settings. The value can be hand-edited or
+ * come from workspace settings, so an unusable string must not abort coloring.
+ */
+export function parseBaseColor(value: string): Color | undefined {
+  try {
+    return Color(value);
+  } catch {
+    return undefined;
+  }
+}
+
 const MAX_LUMINOSITY_ITERATIONS = 500;
 
 export function getColorWithLuminosity(color: Color, min: number, max: number): Color {

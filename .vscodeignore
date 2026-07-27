@@ -19,6 +19,7 @@ tsconfig.test.json
 vsc-extension-quickstart.md
 tslint.json
 .claude/**
+scripts/**
 AGENTS.md
 color-preview.html
 generate_palettes.py

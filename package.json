@@ -74,7 +74,8 @@
         "windowColors.deleteSettingsFileUponExit": {
           "type": "boolean",
           "default": false,
-          "description": "Remove Window Colors-managed color keys from workspace settings when the window closes. Other workspace settings are preserved. Set this in User Settings so the option does not remove itself."
+          "scope": "machine",
+          "description": "Remove Window Colors-managed color keys from workspace settings when the window closes. Other workspace settings are preserved. This setting is machine-scoped: set it in User Settings, because a value in workspace settings is ignored and would otherwise remove itself."
         },
         "windowColors.baseColor": {
           "type": "string",

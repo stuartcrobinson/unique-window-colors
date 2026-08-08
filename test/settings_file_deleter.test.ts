@@ -51,12 +51,13 @@ const MANAGED_ONLY = {
 };
 
 function makeWorkspace(settings: unknown): string {
+  return makeWorkspaceFromText(JSON.stringify(settings, null, 4) + '\n');
+}
+
+function makeWorkspaceFromText(text: string): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'window-colors-'));
   fs.mkdirSync(path.join(root, '.vscode'));
-  fs.writeFileSync(
-    path.join(root, '.vscode', 'settings.json'),
-    JSON.stringify(settings, null, 4) + '\n',
-  );
+  fs.writeFileSync(path.join(root, '.vscode', 'settings.json'), text);
   return root;
 }
 
@@ -93,5 +94,58 @@ describe('SettingsFileDeleter', () => {
     const remaining = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
     equal(remaining['editor.fontSize'], 19);
     equal(remaining['workbench.colorCustomizations'], undefined);
+  });
+
+  // Issue #75: settings.json is JSONC. Cleanup used to throw on these files,
+  // then to skip them silently once the throw was caught.
+  it('cleans up a settings file that contains comments', () => {
+    deleteSettingsFileUponExit = true;
+    const root = makeWorkspaceFromText(`{
+	// Comments are legal in settings.json.
+	"editor.fontSize": 19,
+	"workbench.colorCustomizations": {
+		"activityBar.background": "#032F03",
+		"titleBar.activeBackground": "#044104",
+	}
+}
+`);
+    const settingsFile = path.join(root, '.vscode', 'settings.json');
+
+    new SettingsFileDeleter(root).dispose();
+
+    equal(fs.readFileSync(settingsFile, 'utf8'), `{
+	// Comments are legal in settings.json.
+	"editor.fontSize": 19
+}
+`);
+  });
+
+  it('keeps a file whose only remaining content is a comment', () => {
+    deleteSettingsFileUponExit = true;
+    const root = makeWorkspaceFromText(`{
+	// Keep this note even after the colors go.
+	"workbench.colorCustomizations": {
+		"activityBar.background": "#032F03"
+	}
+}
+`);
+    const settingsFile = path.join(root, '.vscode', 'settings.json');
+
+    new SettingsFileDeleter(root).dispose();
+
+    ok(fs.existsSync(settingsFile), 'a file still holding a user comment must survive');
+    ok(fs.readFileSync(settingsFile, 'utf8').includes('Keep this note'));
+  });
+
+  it('leaves a damaged settings file untouched', () => {
+    deleteSettingsFileUponExit = true;
+    const damaged = '{\n  "workbench.colorCustomizations": {\n';
+    const root = makeWorkspaceFromText(damaged);
+    const settingsFile = path.join(root, '.vscode', 'settings.json');
+
+    new SettingsFileDeleter(root).dispose();
+
+    ok(fs.existsSync(settingsFile), 'an unparseable file must never be deleted');
+    equal(fs.readFileSync(settingsFile, 'utf8'), damaged);
   });
 });

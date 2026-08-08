@@ -14,9 +14,11 @@ import {
   reconcileColorCustomizations,
 } from './color_model';
 import {
+  LEGACY_SETTING_MIGRATIONS,
+  ManagedSettingsRemoval,
+  migrateLegacySettingKeys,
   parseWorkspaceBackgrounds,
-  removeManagedColorCustomizations,
-  WorkspaceSettings,
+  removeManagedSettings,
 } from './settings_cleanup';
 
 export const BASE_COLORS = [
@@ -155,6 +157,38 @@ export function deriveThemedColors(
   };
 }
 
+/** The two paths this extension reads and writes inside a workspace. */
+function workspaceSettingsPaths(workspaceRoot: string): { settingsFile: string; vscodeDir: string } {
+  const vscodeDir = workspaceRoot + '/.vscode';
+  return { settingsFile: vscodeDir + '/settings.json', vscodeDir };
+}
+
+type RemovalOutcome = 'deleted' | 'written' | 'failed';
+
+/**
+ * Write a removal result back to disk, deleting the settings file — and the
+ * `.vscode` directory when that empties too — only when nothing of the user's
+ * is left in it.
+ *
+ * Shared by shutdown cleanup and the Remove Colors command so the two cannot
+ * drift into treating the filesystem differently. The caller decides what, if
+ * anything, to tell the user.
+ */
+function applyRemovalToDisk(workspaceRoot: string, removal: ManagedSettingsRemoval): RemovalOutcome {
+  const { settingsFile, vscodeDir } = workspaceSettingsPaths(workspaceRoot);
+  try {
+    if (removal.disposable) {
+      fs.unlinkSync(settingsFile);
+      try { fs.rmdirSync(vscodeDir); } catch { /* dir not empty, leave it */ }
+      return 'deleted';
+    }
+    fs.writeFileSync(settingsFile, removal.text);
+    return 'written';
+  } catch {
+    return 'failed';
+  }
+}
+
 export class SettingsFileDeleter {
   constructor(private workspaceRoot: string) { }
 
@@ -169,35 +203,30 @@ export class SettingsFileDeleter {
       return;
     }
 
-    const settingsFile = this.workspaceRoot + '/.vscode/settings.json';
-    const vscodeDir = this.workspaceRoot + '/.vscode';
+    const { settingsFile } = workspaceSettingsPaths(this.workspaceRoot);
     if (!fs.existsSync(settingsFile)) {
       return;
     }
 
-    let settingsFileJson: WorkspaceSettings;
+    let removal: ManagedSettingsRemoval | undefined;
     try {
-      settingsFileJson = JSON.parse(fs.readFileSync(settingsFile, 'utf8')) as WorkspaceSettings;
+      removal = removeManagedSettings(fs.readFileSync(settingsFile, 'utf8'));
     } catch {
       return;
     }
-    const cleaned = removeManagedColorCustomizations(settingsFileJson);
-    if (JSON.stringify(cleaned) === JSON.stringify(settingsFileJson)) {
+    // Undefined means the file could not be parsed, so it is left alone.
+    if (!removal?.changed) {
       return;
     }
 
-    if (Object.keys(cleaned).length === 0) {
-      fs.unlinkSync(settingsFile);
-      try { fs.rmdirSync(vscodeDir); } catch { /* dir not empty, leave it */ }
-    } else {
-      fs.writeFileSync(settingsFile, JSON.stringify(cleaned, null, 2) + '\n');
-    }
+    // A failure here is not reportable: the window is already closing.
+    applyRemovalToDisk(this.workspaceRoot, removal);
   }
 }
 
 /** Managed backgrounds currently written to this workspace's settings file. */
 function readWorkspaceBackgrounds(workspaceRoot: string): ColorCustomizations {
-  const settingsFile = workspaceRoot + '/.vscode/settings.json';
+  const { settingsFile } = workspaceSettingsPaths(workspaceRoot);
   try {
     if (!fs.existsSync(settingsFile)) {
       return {};
@@ -328,18 +357,6 @@ async function applyWindowColors(
   }
 }
 
-// Mapping from old emoji-prefixed setting keys to new camelCase keys.
-// Used to migrate settings from versions <= 1.2.4.
-const SETTINGS_MIGRATIONS: [string, string][] = [
-  ['🌈 Theme', 'theme'],
-  ['🌈 DeleteSettingsFileUponExit', 'deleteSettingsFileUponExit'],
-  ['🌈 BaseColor', 'baseColor'],
-  ['🌈 ColorTitleBar', 'colorTitleBar'],
-  ['🌈 ColorActivityBar', 'colorActivityBar'],
-  ['🌈 ColorStatusBar', 'colorStatusBar'],
-  ['🌈 NeverColorThisWindow', 'neverColorThisWindow'],
-];
-
 const PRESERVED_BACKGROUNDS_STATE_PREFIX = 'preservedBackgroundsV1';
 
 /**
@@ -352,35 +369,21 @@ const PRESERVED_BACKGROUNDS_STATE_PREFIX = 'preservedBackgroundsV1';
  */
 async function migrateOldSettings(workspaceRoot: string): Promise<void> {
   // --- Workspace settings: direct file manipulation (most reliable) ---
-  const settingsFile = workspaceRoot + '/.vscode/settings.json';
+  const { settingsFile } = workspaceSettingsPaths(workspaceRoot);
   if (fs.existsSync(settingsFile)) {
     try {
-      const content: Record<string, unknown> = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-      let changed = false;
-
-      for (const [oldKey, newKey] of SETTINGS_MIGRATIONS) {
-        const oldFull = `windowColors.${oldKey}`;
-        const newFull = `windowColors.${newKey}`;
-
-        if (oldFull in content) {
-          // Only copy if the new key doesn't already have a value
-          if (!(newFull in content)) {
-            content[newFull] = content[oldFull];
-          }
-          delete content[oldFull];
-          changed = true;
-        }
+      const original = fs.readFileSync(settingsFile, 'utf8');
+      const migrated = migrateLegacySettingKeys(original);
+      // Undefined means the file could not be parsed, so it is left alone.
+      if (migrated !== undefined && migrated !== original) {
+        fs.writeFileSync(settingsFile, migrated);
       }
-
-      if (changed) {
-        fs.writeFileSync(settingsFile, JSON.stringify(content, null, 2) + '\n');
-      }
-    } catch { /* malformed JSON or permission error — skip */ }
+    } catch { /* unreadable file or permission error — skip */ }
   }
 
   // --- User (global) settings: best-effort via configuration API ---
   const cfg = workspace.getConfiguration('windowColors');
-  for (const [oldKey, newKey] of SETTINGS_MIGRATIONS) {
+  for (const [oldKey, newKey] of LEGACY_SETTING_MIGRATIONS) {
     try {
       const old = cfg.inspect(oldKey);
       if (old?.globalValue !== undefined) {
@@ -730,8 +733,7 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(resetColorsDisposable);
 
   const removeColorsDisposable = commands.registerCommand('windowColors.removeColors', async () => {
-    const settingsFile = workspaceRoot + '/.vscode/settings.json';
-    const vscodeDir = workspaceRoot + '/.vscode';
+    const { settingsFile } = workspaceSettingsPaths(workspaceRoot);
 
     await forgetRememberedBackgrounds();
 
@@ -740,40 +742,35 @@ export function activate(context: ExtensionContext) {
       return;
     }
 
-    let fileContent: Record<string, unknown>;
+    let removal: ManagedSettingsRemoval | undefined;
     try {
-      fileContent = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+      removal = removeManagedSettings(fs.readFileSync(settingsFile, 'utf8'), {
+        includeWindowColorsSettings: true,
+      });
     } catch {
-      window.showErrorMessage('Could not parse .vscode/settings.json.');
+      window.showErrorMessage('Could not read .vscode/settings.json.');
       return;
     }
 
-    // Remove all managed color keys from workbench.colorCustomizations
-    const cc = (fileContent['workbench.colorCustomizations'] as Record<string, unknown>) || {};
-    for (const key of MANAGED_COLOR_KEYS) {
-      delete cc[key];
+    if (!removal) {
+      window.showErrorMessage(
+        'Could not parse .vscode/settings.json, so it was left unchanged. Fix the syntax error and run this command again.',
+      );
+      return;
     }
 
-    if (Object.keys(cc).length === 0) {
-      delete fileContent['workbench.colorCustomizations'];
-    } else {
-      fileContent['workbench.colorCustomizations'] = cc;
+    if (!removal.changed) {
+      window.showInformationMessage('No window color settings found — nothing to remove.');
+      return;
     }
 
-    // Remove all windowColors.* settings
-    for (const key of Object.keys(fileContent)) {
-      if (key.startsWith('windowColors.')) {
-        delete fileContent[key];
-      }
-    }
-
-    if (Object.keys(fileContent).length === 0) {
-      fs.unlinkSync(settingsFile);
-      try { fs.rmdirSync(vscodeDir); } catch { /* dir not empty, leave it */ }
+    const outcome = applyRemovalToDisk(workspaceRoot, removal);
+    if (outcome === 'deleted') {
       window.showInformationMessage('Window colors removed. Settings file deleted.');
-    } else {
-      fs.writeFileSync(settingsFile, JSON.stringify(fileContent, null, 2) + '\n');
+    } else if (outcome === 'written') {
       window.showInformationMessage('Window colors removed from workspace settings.');
+    } else {
+      window.showErrorMessage('Could not write .vscode/settings.json.');
     }
   });
 

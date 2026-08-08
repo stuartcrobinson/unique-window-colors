@@ -51,6 +51,35 @@ composited color depends on the active VS Code theme.
 
 <!-- <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/> -->
 
+## Troubleshooting
+
+### Colors are not visible on VS Code 1.131+
+
+If every window suddenly renders with the default theme chrome, check whether
+the new modern UI is switched on:
+
+```javascript
+  "workbench.experimental.modernUI": false
+```
+
+Reload the window after changing it.
+
+VS Code's modern UI draws the title bar, activity bar, and status bar as
+transparent surfaces, so `titleBar.activeBackground`, `activityBar.background`,
+and `statusBar.background` have no visible effect — the editor background shows
+through instead. This extension still writes the correct values to
+`.vscode/settings.json`; VS Code just does not paint them.
+
+This is easy to miss because the setting's default is `false`, yet it can be
+switched on for you as part of a VS Code experiment. Nothing appears in your own
+settings to explain the change.
+
+Turning it off reverts the whole modern look, so it is a trade-off rather than a
+fix. Upstream this is
+[microsoft/vscode#326126](https://github.com/microsoft/vscode/issues/326126),
+"Some color theme settings and color customizations are ignored in modern UI
+mode", which is open and labelled a regression.
+
 ## Notes
 
 Workspaces containing multiple root folders are not currently supported by this extension.  The current behavior for multi-folder workspaces is that the workspace color settings will be set by the first window opened, and can be saved in the workspace's `<workspace-name>.code-workspace` configuration file.

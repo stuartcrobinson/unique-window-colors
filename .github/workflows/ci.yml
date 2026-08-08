@@ -9,7 +9,14 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # The extension edits settings.json through raw fs calls, so path handling,
+    # line endings, and directory removal have to be exercised on every platform
+    # users actually run, not just on Linux.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,5 +26,45 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npx tsc --noEmit
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - run: npm audit
       - run: npm run package:vsix -- --out /tmp/window-colors-ci.vsix
+
+  engine-floor:
+    # engines.vscode claims 1.56, whose extension host runs Node 14.16. Every
+    # line of shipped JS — ours and our dependencies' — must parse there, because
+    # a syntax error in an eagerly required module takes down the whole
+    # extension rather than just one feature.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run compile
+      # Drop dev dependencies so only what ships is checked.
+      - run: npm prune --omit=dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '14.16'
+      - name: Every shipped file must parse on the oldest supported runtime
+        run: |
+          node --version
+          failed=0
+          while IFS= read -r file; do
+            node --check "$file" || { echo "FAILS TO PARSE: $file"; failed=1; }
+          done < <(find out node_modules -name '*.js' -not -path '*/esm/*')
+          exit $failed
+      - name: The modules we load must actually load
+        run: node -e "require('./out/settings_document.js'); require('./out/settings_cleanup.js'); console.log('extension modules load on Node ' + process.version)"

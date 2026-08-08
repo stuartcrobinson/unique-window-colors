@@ -57,9 +57,28 @@ export function contrastRatio(first: string | Color, second: string | Color): nu
 }
 
 /**
+ * Contrast ratio that generated foregrounds aim for.
+ *
+ * Using the strongest neutral made contrast an accident of whatever the
+ * background happened to be: across the shipping presets it ranged from 4.9:1
+ * to 16.7:1, so bars within one window did not match. The Purple preset in dark
+ * mode put pure white on a very dark activity bar at 13.7:1, which reads as
+ * glare, next to a lighter title bar at 9.7:1, which reads as washed out.
+ * Aiming at a fixed ratio evens the window out. Comfortably above WCAG AA
+ * (4.5:1) and AAA (7:1).
+ */
+export const TARGET_FOREGROUND_CONTRAST = 10;
+
+/** Bisection steps; 24 is far past the precision an 8-bit channel can show. */
+const CONTRAST_SEARCH_STEPS = 24;
+
+/**
  * Derive a readable foreground from the exact background it will be painted on.
- * Black or white always provides the strongest available sRGB contrast for an
- * opaque background; choose the better of those two neutral endpoints.
+ *
+ * Picks the neutral direction with more room, then softens toward the
+ * background until the result just clears TARGET_FOREGROUND_CONTRAST. When the
+ * background has no headroom — the strongest neutral is already short of the
+ * target — that neutral is used unchanged.
  */
 export function foregroundFor(background: string): string {
   const backgroundColor = Color(background);
@@ -69,9 +88,32 @@ export function foregroundFor(background: string): string {
 
   const black = Color('#000000');
   const white = Color('#FFFFFF');
-  return contrastRatio(backgroundColor, white) >= contrastRatio(backgroundColor, black)
-    ? white.hex()
-    : black.hex();
+  const extreme = contrastRatio(backgroundColor, white) >= contrastRatio(backgroundColor, black)
+    ? white
+    : black;
+
+  if (contrastRatio(backgroundColor, extreme) <= TARGET_FOREGROUND_CONTRAST) {
+    return extreme.hex();
+  }
+
+  // Contrast falls monotonically as the foreground moves toward the background,
+  // so bisect for the softest foreground that still meets the target. Each
+  // candidate is rounded to 8-bit first, so the ratio measured here is the ratio
+  // the returned colour actually delivers.
+  let meetsTarget = 0;      // mix weight known to satisfy the target
+  let missesTarget = 1;     // mix weight landing on the background itself
+  let result = extreme;
+  for (let step = 0; step < CONTRAST_SEARCH_STEPS; step++) {
+    const weight = (meetsTarget + missesTarget) / 2;
+    const candidate = Color(extreme.mix(backgroundColor, weight).hex());
+    if (contrastRatio(backgroundColor, candidate) >= TARGET_FOREGROUND_CONTRAST) {
+      result = candidate;
+      meetsTarget = weight;
+    } else {
+      missesTarget = weight;
+    }
+  }
+  return result.hex();
 }
 
 /** Return a copy with foregrounds synchronized to their actual backgrounds. */

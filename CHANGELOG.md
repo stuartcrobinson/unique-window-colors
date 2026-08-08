@@ -5,6 +5,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.2.11] - 2026-08-08
 
+- Aim generated foregrounds at a consistent contrast ratio instead of always
+  using pure white or pure black. Contrast used to be whatever the background
+  happened to give, ranging from 4.9:1 to 16.7:1, so bars within one window did
+  not match: a very dark activity bar glared under pure white while a lighter
+  title bar looked washed out. Across the presets the range is now 4.9:1 to
+  10.1:1, and the gap between bars in the same window fell from as much as
+  4.0 to 0.4 in the worst reported case. Every foreground still clears WCAG AA.
+
 - Treat `.vscode/settings.json` as JSONC, which is what VS Code accepts there.
   Comments and trailing commas no longer stop the extension from reading a
   workspace's existing colors, from cleaning them up when a window closes, or

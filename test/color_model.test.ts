@@ -1,8 +1,10 @@
-import { deepStrictEqual, equal, ok } from 'assert';
+import { deepStrictEqual, equal, notEqual, ok } from 'assert';
 import { describe, it } from 'node:test';
+import * as Color from 'color';
 import {
   BACKGROUND_FOREGROUND_PAIRS,
   contrastRatio,
+  TARGET_FOREGROUND_CONTRAST,
   extractBackgrounds,
   foregroundFor,
   improveForegrounds,
@@ -26,20 +28,38 @@ describe('parseBaseColor', () => {
 });
 
 describe('foregroundFor', () => {
-  it('reproduces optimized foregrounds for the reported Petrol colors', () => {
-    equal(foregroundFor('#053241'), '#FFFFFF');
-    equal(foregroundFor('#34C1F0'), '#000000');
-    equal(foregroundFor('#031C25'), '#FFFFFF');
+  // Foregrounds aim for a consistent contrast rather than the strongest one.
+  // Always choosing pure white or pure black made contrast a side effect of
+  // whatever the background happened to be: across the shipping presets it
+  // ranged from 4.9:1 to 16.7:1, so within a single window the activity bar
+  // glared at 13.7:1 while the title bar looked washed out at 9.7:1.
+  it('picks the correct neutral direction', () => {
+    ok(Color(foregroundFor('#053241')).luminosity() > 0.5, 'dark background takes a light foreground');
+    ok(Color(foregroundFor('#34C1F0')).luminosity() < 0.5, 'light background takes a dark foreground');
+    ok(Color(foregroundFor('#031C25')).luminosity() > 0.5);
+    ok(Color(foregroundFor('#996A5B')).luminosity() > 0.5);
+    ok(Color(foregroundFor('#BD7000')).luminosity() < 0.5);
   });
 
-  it('uses the strongest neutral contrast for warm colors', () => {
-    equal(foregroundFor('#996A5B'), '#FFFFFF');
-    equal(foregroundFor('#BD7000'), '#000000');
-    equal(foregroundFor('#DE3F24'), '#000000');
-    equal(foregroundFor('#D95D0A'), '#000000');
+  it('softens the foreground when a background could exceed the target contrast', () => {
+    // #411F4F is the activity bar of the Purple preset in dark mode. Pure white
+    // against it measures 13.7:1, which reads as glare.
+    const foreground = foregroundFor('#411F4F');
+    notEqual(foreground, '#FFFFFF', 'pure white on a very dark bar is too harsh');
+    ok(
+      contrastRatio('#411F4F', foreground) < 13,
+      `expected softening, got ${contrastRatio('#411F4F', foreground)}:1`,
+    );
+    ok(contrastRatio('#411F4F', foreground) >= 4.5, 'must still clear WCAG AA');
   });
 
-  it('chooses the maximum-contrast neutral and clears WCAG AA across a deterministic sRGB grid', () => {
+  it('keeps the full-strength neutral when the target is out of reach', () => {
+    // #612F76 is the title bar of that same window; white only reaches 9.7:1,
+    // so there is no headroom to give away and it must stay pure white.
+    equal(foregroundFor('#612F76'), '#FFFFFF');
+  });
+
+  it('clears WCAG AA and never overshoots the target across a deterministic sRGB grid', () => {
     const channelLevels = [0, 51, 102, 153, 204, 255];
     for (const red of channelLevels) {
       for (const green of channelLevels) {
@@ -48,16 +68,20 @@ describe('foregroundFor', () => {
             .map(channel => channel.toString(16).padStart(2, '0'))
             .join('')}`;
           const foreground = foregroundFor(background);
-          const blackContrast = contrastRatio(background, '#000000');
-          const whiteContrast = contrastRatio(background, '#FFFFFF');
-          equal(
-            contrastRatio(background, foreground),
-            Math.max(blackContrast, whiteContrast),
-            `${foreground} should maximize neutral contrast against ${background}`,
+          const achieved = contrastRatio(background, foreground);
+          const best = Math.max(
+            contrastRatio(background, '#000000'),
+            contrastRatio(background, '#FFFFFF'),
           );
           ok(
-            contrastRatio(background, foreground) >= 4.5,
-            `${foreground} should clear WCAG AA against ${background}`,
+            achieved >= 4.5,
+            `${foreground} should clear WCAG AA against ${background}, got ${achieved}`,
+          );
+          // Either the target was met, or the background had no headroom and
+          // the strongest available neutral was used.
+          ok(
+            achieved >= TARGET_FOREGROUND_CONTRAST - 0.5 || achieved >= best - 0.001,
+            `${foreground} against ${background} reached ${achieved}, below target with headroom to spare`,
           );
         }
       }
@@ -91,9 +115,11 @@ describe('improveForegrounds', () => {
       }
     }
     equal(improved['editor.background'], '#123456');
-    equal(improved['activityBar.foreground'], '#FFFFFF');
-    equal(improved['activityBar.inactiveForeground'], '#FFFFFF');
-    equal(improved['titleBar.inactiveForeground'], '#FFFFFF');
+    // Foregrounds on a dark bar are light but softened rather than pure white,
+    // and the two activity-bar roles stay in step with each other.
+    ok(Color(improved['activityBar.foreground'] as string).luminosity() > 0.5);
+    equal(improved['activityBar.inactiveForeground'], improved['activityBar.foreground']);
+    ok(Color(improved['titleBar.inactiveForeground'] as string).luminosity() > 0.5);
 
     for (const [backgroundKey, foregroundKeys] of BACKGROUND_FOREGROUND_PAIRS) {
       const background = improved[backgroundKey];
@@ -201,7 +227,9 @@ describe('reconcileColorCustomizations', () => {
     equal(result['titleBar.activeBackground'], '#34C1F0');
     equal(result['titleBar.inactiveBackground'], '#031C25');
     equal(result['statusBar.background'], '#996A5B');
-    equal(result['activityBar.foreground'], '#FFFFFF');
+    // The stale dark foreground on a dark bar is replaced with a light one.
+    ok(Color(result['activityBar.foreground'] as string).luminosity() > 0.5);
+    ok(contrastRatio('#053241', result['activityBar.foreground'] as string) >= 4.5);
   });
 
   it('removes all keys for disabled areas, including orphaned foregrounds', () => {

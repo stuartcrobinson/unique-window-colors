@@ -33,7 +33,11 @@ by `src/color_model.ts` and its tests.
 - [ ] Run `npm run package:vsix -- --out <path>` without publishing and inspect
       its file list.
 - [ ] Install the VSIX into an isolated VS Code profile and run an automated
-      extension-host migration test before any registry write.
+      extension-host migration test before any registry write:
+      `scripts/smoke_extension_host.sh [path/to/extension.vsix]`. It opens a real
+      window against a deliberately awkward settings.json, then closes it
+      cleanly to exercise shutdown cleanup. Unit tests stub the `vscode` module
+      and cannot cover either path.
 - [ ] Confirm the canonical publisher/namespace is `stuart` in both registries.
 - [ ] Keep the duplicate `stuartcrobinson` Open VSX namespace cleanup separate
       from the release itself.

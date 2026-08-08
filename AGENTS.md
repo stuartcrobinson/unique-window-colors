@@ -72,3 +72,20 @@ See `RELEASE_CHECKLIST.md` for the remaining marketplace work.
 Use `npm run package:vsix -- --out <path>` for package dry runs. Open VSX
 publishing is owned by `.github/workflows/publish_ovsx.yml`; the canonical
 namespace is `stuart`, and the workflow must never recreate a namespace.
+
+## Extension-host smoke test
+
+`scripts/smoke_extension_host.sh` is the only check that runs the extension in a
+real VS Code. Unit tests stub the `vscode` module, so activation and
+shutdown cleanup are invisible to them. Run it before any release.
+
+Three environment traps make it fail confusingly, and the script handles all
+three; do not "simplify" them away:
+
+- `ELECTRON_RUN_AS_NODE=1` is set inside VS Code's integrated terminal and makes
+  the Electron binary behave as plain Node, so the app never starts.
+- `VSCODE_IPC_HOOK_CLI` makes the `code` wrapper forward commands to the already
+  running VS Code, so a launch silently opens a window in the developer's own
+  instance instead of the isolated profile.
+- `--user-data-dir` must be a short path. VS Code opens a Unix domain socket
+  inside it, capped near 103 characters; a long path fails with `listen EINVAL`.

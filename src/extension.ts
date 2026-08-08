@@ -8,6 +8,7 @@ import {
   extractBackgrounds,
   getColorWithLuminosity,
   improveForegrounds,
+  ensureForegroundHeadroom,
   MANAGED_COLOR_KEYS,
   mergePreservedBackgrounds,
   parseBaseColor,
@@ -83,6 +84,21 @@ function resolveTheme(setting: string | undefined): string | undefined {
   return setting;
 }
 
+/**
+ * Push every generated bar out of the low-contrast dead zone, so all four bars
+ * in a window can carry foregrounds of similar strength. Only applies to colors
+ * generated here; backgrounds a workspace already has are left untouched by the
+ * caller before this is ever reached.
+ */
+function withForegroundHeadroom(colors: DerivedColors): DerivedColors {
+  return {
+    sideBar: ensureForegroundHeadroom(colors.sideBar),
+    titleBar: ensureForegroundHeadroom(colors.titleBar),
+    inactiveTitleBar: ensureForegroundHeadroom(colors.inactiveTitleBar),
+    statusBar: ensureForegroundHeadroom(colors.statusBar),
+  };
+}
+
 // Derive themed bar backgrounds from a raw base color.
 // When respectExtremes is true, colors already beyond the dark/light threshold are
 // kept as-is (used for user-chosen baseColor overrides like Black or White).
@@ -111,12 +127,12 @@ export function deriveThemedColors(
     const sideBar = respectExtremes && rawColor.luminosity() < dkMin
       ? rawColor
       : getColorWithLuminosity(rawColor, dkMin, dkMax);
-    return {
+    return withForegroundHeadroom({
       sideBar,
       titleBar: sideBar.lighten(0.5),
       inactiveTitleBar: sideBar,
       statusBar: sideBar,
-    };
+    });
   }
 
   if (theme === 'light') {
@@ -139,22 +155,22 @@ export function deriveThemedColors(
     // Status bar = a few shades lighter than the sidebar
     const statusBar = sideBar.lightness(sideBar.lightness() + 4);
 
-    return {
+    return withForegroundHeadroom({
       sideBar,
       titleBar,
       inactiveTitleBar,
       statusBar,
-    };
+    });
   }
 
   // No theme (raw color mode)
   const titleBar = rawColor.lighten(0.3);
-  return {
+  return withForegroundHeadroom({
     sideBar: rawColor,
     titleBar,
     inactiveTitleBar: rawColor,
     statusBar: rawColor,
-  };
+  });
 }
 
 /** The two paths this extension reads and writes inside a workspace. */

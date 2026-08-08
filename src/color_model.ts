@@ -73,6 +73,46 @@ export const TARGET_FOREGROUND_CONTRAST = 10;
 const CONTRAST_SEARCH_STEPS = 24;
 
 /**
+ * Contrast a generated bar must be able to offer its foreground.
+ *
+ * Mid-luminance hues — the yellows, olives, oranges, rusts and browns — sit
+ * where neither black nor white has much contrast, so a generated bar could
+ * land at 4.9:1. That is legal under WCAG AA but reads as visibly dim beside
+ * the ~10:1 the other bars in the same window reach. Pushing such a background
+ * out of that dead zone costs some vividness and buys legibility; 7:1 is WCAG
+ * AAA for normal text.
+ */
+export const MINIMUM_FOREGROUND_HEADROOM = 7;
+
+/** Step size when moving a background out of the low-contrast dead zone. */
+const HEADROOM_STEP = 0.01;
+const MAX_HEADROOM_STEPS = 400;
+
+/**
+ * Move a generated background away from mid-luminance until the better neutral
+ * can reach MINIMUM_FOREGROUND_HEADROOM against it.
+ *
+ * Applies only to colors this extension generates. Backgrounds a workspace
+ * already has are authoritative and must never be pushed around by this.
+ */
+export function ensureForegroundHeadroom(color: Color): Color {
+  const towardWhite = contrastRatio(color, '#FFFFFF') >= contrastRatio(color, '#000000');
+  const neutral = towardWhite ? '#FFFFFF' : '#000000';
+
+  let adjusted = color;
+  let steps = 0;
+  while (
+    contrastRatio(adjusted, neutral) < MINIMUM_FOREGROUND_HEADROOM &&
+    steps++ < MAX_HEADROOM_STEPS
+  ) {
+    // A light foreground needs a darker bar; a dark foreground needs a lighter
+    // one. Either way the bar moves further from the middle.
+    adjusted = towardWhite ? adjusted.darken(HEADROOM_STEP) : adjusted.lighten(HEADROOM_STEP);
+  }
+  return adjusted;
+}
+
+/**
  * Derive a readable foreground from the exact background it will be painted on.
  *
  * Picks the neutral direction with more room, then softens toward the

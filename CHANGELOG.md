@@ -12,6 +12,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   title bar looked washed out. Across the presets the range is now 4.9:1 to
   10.1:1, and the gap between bars in the same window fell from as much as
   4.0 to 0.4 in the worst reported case. Every foreground still clears WCAG AA.
+- Keep generated bar backgrounds out of the low-contrast dead zone. Mid-luminance
+  hues — the yellows, olives, oranges, rusts and browns — sit where neither black
+  nor white has much contrast, so a bar could land at 4.9:1: legal, but visibly
+  dim beside the other bars in the same window. Those backgrounds now move far
+  enough from the middle for a 7:1 foreground, which costs a little vividness and
+  buys legibility. Generated colors only; a workspace's existing colors are
+  untouched. Across the presets contrast now spans 7.0:1 to 10.1:1.
 
 - Treat `.vscode/settings.json` as JSONC, which is what VS Code accepts there.
   Comments and trailing commas no longer stop the extension from reading a

@@ -86,9 +86,7 @@ function resolveTheme(setting: string | undefined): string | undefined {
 
 /**
  * Push every generated bar out of the low-contrast dead zone, so all four bars
- * in a window can carry foregrounds of similar strength. Only applies to colors
- * generated here; backgrounds a workspace already has are left untouched by the
- * caller before this is ever reached.
+ * in a window can carry foregrounds of similar strength.
  */
 function withForegroundHeadroom(colors: DerivedColors): DerivedColors {
   return {

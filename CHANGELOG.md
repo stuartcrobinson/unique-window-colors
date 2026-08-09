@@ -5,48 +5,30 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.2.11] - 2026-08-08
 
-- Aim generated foregrounds at a consistent contrast ratio instead of always
-  using pure white or pure black. Contrast used to be whatever the background
-  happened to give, ranging from 4.9:1 to 16.7:1, so bars within one window did
-  not match: a very dark activity bar glared under pure white while a lighter
-  title bar looked washed out. Across the presets the range is now 4.9:1 to
-  10.1:1, and the gap between bars in the same window fell from as much as
-  4.0 to 0.4 in the worst reported case. Every foreground still clears WCAG AA.
-- Keep generated bar backgrounds out of the low-contrast dead zone. Mid-luminance
-  hues — the yellows, olives, oranges, rusts and browns — sit where neither black
-  nor white has much contrast, so a bar could land at 4.9:1: legal, but visibly
-  dim beside the other bars in the same window. Those backgrounds now move far
-  enough from the middle for a 7:1 foreground, which costs a little vividness and
-  buys legibility. Generated colors only; a workspace's existing colors are
-  untouched. Across the presets contrast now spans 7.0:1 to 10.1:1.
-
-- Treat `.vscode/settings.json` as JSONC, which is what VS Code accepts there.
+- Even out bar contrast within a window. Foregrounds previously used pure white
+  or pure black, leaving contrast at the mercy of the background: a dark
+  activity bar could glare while a lighter title bar looked washed out. Colors
+  generated for the presets now range from 7.0:1 to 10.1:1 rather than 4.9:1 to
+  16.7:1. Mid-luminance hues, where neither black nor white has much room, trade
+  a little vividness for legibility. Existing workspace colors are unchanged.
+- Read `.vscode/settings.json` as JSONC, which is what VS Code accepts there.
   Comments and trailing commas no longer stop the extension from reading a
-  workspace's existing colors, from cleaning them up when a window closes, or
-  from running **Remove Colors from This Window**. Reported in issue #75.
-- Recover existing backgrounds from settings files that use comments. Reading
-  them previously failed silently, which defeated the safeguard that keeps a
-  workspace's colors stable across updates and could let a window's color
-  change on upgrade. Related to issue #71.
-- Edit the settings file in place instead of rewriting it, so comments,
-  indentation style, and line endings survive any change the extension makes.
-- Never delete a settings file that still holds a comment, and never write to
-  one that cannot be parsed; a damaged file is now left exactly as it is.
-- Handle settings files saved with a byte order mark, which VS Code writes
-  whenever `files.encoding` is `utf8bom`. These were unreadable for the same
-  reason commented files were, and the mark is preserved when the file is
-  edited so the file's encoding does not change underneath the user.
-- Run the test suite on Windows, macOS, and Linux, and verify that every
-  shipped file parses on the oldest supported VS Code runtime.
+  workspace's existing colors, cleaning them up when a window closes, or running
+  **Remove Colors from This Window**. Reported in issue #75.
+- Keep existing colors stable for workspaces whose settings file has comments.
+  Reading those files failed silently, defeating the safeguard that prevents a
+  window's color changing on upgrade. Related to issue #71.
+- Edit the settings file in place, so comments, indentation, and line endings
+  survive any change the extension makes.
+- Leave a damaged settings file untouched, and never delete one that still holds
+  a comment.
+- Handle settings files saved with a byte order mark, written when
+  `files.encoding` is `utf8bom`, and preserve the mark on write.
 - Raise the minimum supported VS Code version to 1.56 (May 2021), the first
-  release bundling Node.js 14. The JSONC parser this version depends on uses
-  syntax that older releases cannot load. The Marketplace continues to offer
-  1.2.10 to anyone on an earlier VS Code.
-- Assert the settings-file editing rules against thousands of generated
-  documents covering mixed indentation, CRLF, comment placement, trailing
-  commas, and truncation at every byte offset.
-- Document the VS Code 1.131 modern UI regression that makes the title bar,
-  activity bar, and status bar ignore color customizations, along with the
+  release bundling Node.js 14, which the new JSONC parser requires. The
+  Marketplace continues to offer 1.2.10 to anyone on an earlier VS Code.
+- Document the VS Code modern UI regression that makes the title bar, activity
+  bar, and status bar ignore color customizations, along with the
   `workbench.experimental.modernUI` workaround. Reported in issue #74.
 
 ## [1.2.10] - 2026-07-27

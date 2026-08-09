@@ -59,13 +59,10 @@ export function contrastRatio(first: string | Color, second: string | Color): nu
 /**
  * Contrast ratio that generated foregrounds aim for.
  *
- * Using the strongest neutral made contrast an accident of whatever the
- * background happened to be: across the shipping presets it ranged from 4.9:1
- * to 16.7:1, so bars within one window did not match. The Purple preset in dark
- * mode put pure white on a very dark activity bar at 13.7:1, which reads as
- * glare, next to a lighter title bar at 9.7:1, which reads as washed out.
- * Aiming at a fixed ratio evens the window out. Comfortably above WCAG AA
- * (4.5:1) and AAA (7:1).
+ * Using the strongest neutral made contrast an accident of the background: it
+ * ranged from 4.9:1 to 16.7:1 across the presets, so bars in one window did not
+ * match — glare on a dark activity bar beside a washed-out title bar. A fixed
+ * target evens the window out. Comfortably above WCAG AA (4.5:1) and AAA (7:1).
  */
 export const TARGET_FOREGROUND_CONTRAST = 10;
 
@@ -75,12 +72,10 @@ const CONTRAST_SEARCH_STEPS = 24;
 /**
  * Contrast a generated bar must be able to offer its foreground.
  *
- * Mid-luminance hues — the yellows, olives, oranges, rusts and browns — sit
- * where neither black nor white has much contrast, so a generated bar could
- * land at 4.9:1. That is legal under WCAG AA but reads as visibly dim beside
- * the ~10:1 the other bars in the same window reach. Pushing such a background
- * out of that dead zone costs some vividness and buys legibility; 7:1 is WCAG
- * AAA for normal text.
+ * Mid-luminance hues — yellows, olives, oranges, rusts, browns — sit where
+ * neither neutral has much room, so they cannot reach the target above and look
+ * dim beside bars that do. Moving them out of that dead zone trades a little
+ * vividness for legibility. 7:1 is WCAG AAA for normal text.
  */
 export const MINIMUM_FOREGROUND_HEADROOM = 7;
 

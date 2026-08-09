@@ -20,8 +20,25 @@ Ask first: npm install, vsce package, git push, deleting files
 and background snapshot/restore behavior. `src/extension.ts` continues to own
 background generation for new workspaces.
 
-`src/settings_cleanup.ts` is the single owner for removing managed color keys
-from workspace settings. It must preserve unrelated settings.
+Preserve these invariants:
+
+- Existing background strings are authoritative and must not be replaced on
+  activation or upgrade, even when they are absent from `BASE_COLORS`.
+- Foregrounds are derived from the exact background role where they are used.
+- Every foreground generated for an opaque background must clear WCAG AA
+  contrast (4.5:1). Preserve the current foreground for translucent backgrounds.
+- Foregrounds target a fixed contrast rather than the strongest available, and
+  generated backgrounds keep enough headroom to reach it. Always using pure
+  black or white left contrast at the mercy of the background, so bars in one
+  window ranged from 4.9:1 to 16.7:1 and looked mismatched.
+- Keep validation in TypeScript against the shipping implementation; do not add
+  a parallel palette engine in another language.
+
+## Workspace settings files
+
+`src/settings_cleanup.ts` is the single owner for this extension's own keys in
+workspace settings: which colours are managed, their removal, and legacy key
+migration. It must preserve unrelated settings.
 
 `src/settings_document.ts` is the single owner for reading and editing
 `.vscode/settings.json`. That file is JSONC, not JSON: comments and trailing
@@ -38,10 +55,7 @@ commas are legal and common. Preserve these invariants:
 - A file is only deleted when no settings *and* no comments remain.
 - A byte order mark is split off before parsing and restored on write.
 - Finding the comma that separates two properties must step over comments as
-  well as whitespace. Stopping at the `/` of a comment leaves the comma behind
-  and produces an unparseable `{ , "next": 1 }`. Where a comment sits between a
-  property and its comma, the two are cut separately so a comment describing a
-  surviving setting is not destroyed.
+  well as whitespace, or the comma is left behind and the file no longer parses.
 
 Tests for this module are property-based (`test/settings_document_fuzz.test.ts`)
 and assert coverage minimums, because the comma bug above survived an earlier
@@ -53,39 +67,23 @@ minimums fail, fix the generator rather than lowering the threshold.
 `engines.vscode` is `^1.56.0` because that is the first VS Code whose extension
 host runs Node 14, which the bundled JSONC parser requires. Before adding or
 upgrading a runtime dependency, check the syntax level of the code it actually
-loads: a dependency's entry point may eagerly require modules you never call,
-and a syntax error there takes down the whole extension rather than one feature.
-The `engine-floor` CI job parses every shipped file on the oldest supported
-runtime and is what enforces this.
+loads: an entry point may eagerly require modules you never call, and a syntax
+error there takes down the whole extension rather than one feature. The
+`engine-floor` CI job enforces this by parsing every shipped file on Node 14.
 
-Preserve these invariants:
+## Extension-host smoke test
 
-- Existing background strings are authoritative and must not be replaced on
-  activation or upgrade, even when they are absent from `BASE_COLORS`.
-- Foregrounds are derived from the exact background role where they are used.
-- Every foreground generated for an opaque background must clear WCAG AA
-  contrast (4.5:1). Preserve the current foreground for translucent backgrounds.
-- Keep validation in TypeScript against the shipping implementation; do not add
-  a parallel palette engine in another language.
+`scripts/smoke_extension_host.sh` is the only check that runs the extension in a
+real VS Code; unit tests stub the `vscode` module, so activation and shutdown
+cleanup are invisible to them. Run it before any release.
+
+Three environment variables and one path-length limit make it fail in ways that
+look like the extension is broken. The script header documents each one and the
+script works around all of them; do not "simplify" those away.
+
+## Releasing
 
 See `RELEASE_CHECKLIST.md` for the remaining marketplace work.
 Use `npm run package:vsix -- --out <path>` for package dry runs. Open VSX
 publishing is owned by `.github/workflows/publish_ovsx.yml`; the canonical
 namespace is `stuart`, and the workflow must never recreate a namespace.
-
-## Extension-host smoke test
-
-`scripts/smoke_extension_host.sh` is the only check that runs the extension in a
-real VS Code. Unit tests stub the `vscode` module, so activation and
-shutdown cleanup are invisible to them. Run it before any release.
-
-Three environment traps make it fail confusingly, and the script handles all
-three; do not "simplify" them away:
-
-- `ELECTRON_RUN_AS_NODE=1` is set inside VS Code's integrated terminal and makes
-  the Electron binary behave as plain Node, so the app never starts.
-- `VSCODE_IPC_HOOK_CLI` makes the `code` wrapper forward commands to the already
-  running VS Code, so a launch silently opens a window in the developer's own
-  instance instead of the isolated profile.
-- `--user-data-dir` must be a short path. VS Code opens a Unix domain socket
-  inside it, capped near 103 characters; a long path fails with `listen EINVAL`.

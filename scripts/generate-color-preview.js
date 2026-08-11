@@ -79,7 +79,7 @@ function presetCard(preset, mode) {
         <div class="roles">
 ${role('Activity bar', activity, 'activityBar foreground + inactiveForeground')}
 ${role('Title bar · active', titleActive, 'titleBar.activeForeground')}
-${role('Title bar · inactive', titleInactive, 'titleBar.inactiveForeground')}
+${role('Title bar · inactive', titleInactive, 'Matches the activity and status bars exactly')}
 ${role('Status bar', status, 'normal, debugging, and no-folder states')}
         </div>
       </article>`;

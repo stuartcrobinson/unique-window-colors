@@ -43,11 +43,14 @@ Background colors do not get overwritten during routine activation. This allows
 you to keep custom colors or select a Base Color with the command palette. To
 regenerate backgrounds, use **Window Colors: Reset Colors in This Window**.
 
-On extension updates, existing background colors remain unchanged even if their
-old base color is no longer offered in the preset picker. Foreground colors are
-automatically refreshed for readable contrast against opaque backgrounds.
-Foregrounds on translucent backgrounds are left unchanged because their final
-composited color depends on the active VS Code theme.
+On extension updates, the activity and active-title backgrounds remain unchanged
+even if their old base color is no longer offered in the preset picker. Version
+1.2.11 automatically migrates saved inactive-title and status backgrounds to the
+activity-bar color so an inactive window uses one matching bar color; no Reset
+command is required. Foreground colors refresh automatically for readable
+contrast against opaque backgrounds. Translucent backgrounds and their
+foregrounds remain unchanged because their final composited color depends on the
+active VS Code theme.
 
 <!-- <img src="https://github.com/stuartcrobinson/unique-window-colors/blob/master/img/settings.png?raw=true" alt="drawing" width="500"/> -->
 

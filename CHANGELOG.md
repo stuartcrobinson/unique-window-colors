@@ -10,7 +10,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   activity bar could glare while a lighter title bar looked washed out. Colors
   generated for the presets now range from 7.0:1 to 10.1:1 rather than 4.9:1 to
   16.7:1. Mid-luminance hues, where neither black nor white has much room, trade
-  a little vividness for legibility. Existing workspace colors are unchanged.
+  a little vividness for legibility. Existing custom backgrounds remain
+  unchanged, while their foregrounds refresh on activation.
+- Quiet inactive windows by giving the inactive title, activity, and status bars
+  identical generated backgrounds and foregrounds. Existing opaque workspaces
+  migrate their saved inactive-title and status roles automatically; no Reset
+  command is required. Activity and active-title backgrounds remain unchanged.
 - Read `.vscode/settings.json` as JSONC, which is what VS Code accepts there.
   Comments and trailing commas no longer stop the extension from reading a
   workspace's existing colors, cleaning them up when a window closes, or running

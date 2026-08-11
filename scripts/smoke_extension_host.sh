@@ -51,6 +51,26 @@ check() { # check <description> <regex> <"present"|"absent">
   fi
 }
 
+check_equal_colors() { # check_equal_colors <description> <key> <key> [...]
+  local description="$1"
+  shift
+  if node - "$REPO_ROOT" "$SETTINGS" "$@" <<'NODE'
+const fs = require('node:fs');
+const { parse } = require(process.argv[2] + '/node_modules/jsonc-parser');
+const settings = parse(fs.readFileSync(process.argv[3], 'utf8'));
+const colors = settings['workbench.colorCustomizations'] || {};
+const keys = process.argv.slice(4);
+const values = keys.map(key => colors[key]);
+process.exit(values[0] && values.every(value => value === values[0]) ? 0 : 1);
+NODE
+  then
+    printf '  ok    %s\n' "$description"
+  else
+    printf '  FAIL  %s\n' "$description"
+    failures=$((failures + 1))
+  fi
+}
+
 if [ ! -x "$ELECTRON" ]; then
   echo "VS Code not found at $VSCODE_APP (override with VSCODE_APP=...)" >&2
   exit 1
@@ -74,15 +94,28 @@ mkdir -p "$BASE/ext" "$BASE/data/User" "$WS/.vscode"
 printf '{\n  "windowColors.deleteSettingsFileUponExit": true\n}\n' > "$BASE/data/User/settings.json"
 
 # One workspace exercising every awkward case at once: a comment, tab indents,
-# a trailing comma, a legacy emoji key needing migration, and an existing colour
-# that must be preserved rather than regenerated.
+# a trailing comma, a legacy emoji key needing migration, and a complete 1.2.10
+# light-mode palette. Activation must preserve the activity/active-title anchors
+# while automatically migrating the old inactive-title and status layout.
 cat > "$SETTINGS" <<'JSON'
 {
 	// Team note: this comment must survive.
 	"editor.insertSpaces": false,
-	"windowColors.🌈 Theme": "dark",
+	"windowColors.🌈 Theme": "light",
 	"workbench.colorCustomizations": {
-		"activityBar.background": "#410A56",
+		"activityBar.background": "#610606",
+		"activityBar.foreground": "#E7DADA",
+		"activityBar.inactiveForeground": "#E7DADA",
+		"titleBar.activeBackground": "#F89C9C",
+		"titleBar.activeForeground": "#000000",
+		"titleBar.inactiveBackground": "#F56767",
+		"titleBar.inactiveForeground": "#000000",
+		"statusBar.background": "#740808",
+		"statusBar.foreground": "#F3EBEB",
+		"statusBar.debuggingBackground": "#740808",
+		"statusBar.debuggingForeground": "#F3EBEB",
+		"statusBar.noFolderBackground": "#740808",
+		"statusBar.noFolderForeground": "#F3EBEB",
 	},
 }
 JSON
@@ -96,9 +129,11 @@ run_vscode "$ELECTRON" --extensions-dir "$BASE/ext" --user-data-dir "$BASE/data"
   --disable-workspace-trust --skip-welcome --skip-release-notes --disable-updates \
   --new-window "$WS" >"$BASE/launch.log" 2>&1 &
 
-# Poll rather than sleep a fixed time: activation speed varies by machine.
+# Poll rather than sleep a fixed time: activation speed varies by machine. The
+# fixture already contains every color key, so color presence cannot prove that
+# activation ran; disappearance of the legacy setting can.
 for _ in $(seq 1 60); do
-  grep -q "titleBar.activeBackground" "$SETTINGS" 2>/dev/null && break
+  ! grep -q "windowColors.🌈 Theme" "$SETTINGS" 2>/dev/null && break
   sleep 1
 done
 
@@ -107,10 +142,16 @@ check "comment preserved"                 '// Team note' present
 check "tab indentation preserved"         $'\t"editor.insertSpaces"' present
 check "unrelated setting preserved"       '"editor.insertSpaces": false' present
 check "legacy emoji key migrated away"    'windowColors.🌈 Theme' absent
-check "migrated to modern key"            '"windowColors.theme": "dark"' present
-check "existing colour preserved exactly" '"activityBar.background": "#410A56"' present
-check "title bar colour generated"        '"titleBar.activeBackground"' present
+check "migrated to modern key"            '"windowColors.theme": "light"' present
+check "existing colour preserved exactly" '"activityBar.background": "#610606"' present
+check "active title preserved exactly"    '"titleBar.activeBackground": "#F89C9C"' present
 check "foregrounds generated"             '"activityBar.foreground"' present
+check_equal_colors "inactive bar backgrounds exactly match" \
+  activityBar.background titleBar.inactiveBackground statusBar.background \
+  statusBar.debuggingBackground statusBar.noFolderBackground
+check_equal_colors "inactive bar foregrounds exactly match" \
+  activityBar.foreground activityBar.inactiveForeground titleBar.inactiveForeground \
+  statusBar.foreground statusBar.debuggingForeground statusBar.noFolderForeground
 
 echo "==> closing the window cleanly (triggers dispose)"
 MAIN=$(ps -eo pid,command | grep -F "$BASE/data" | grep -v grep \
@@ -133,7 +174,7 @@ if [ ! -f "$SETTINGS" ]; then
 else
   check "comment still preserved"        '// Team note' present
   check "unrelated setting preserved"    '"editor.insertSpaces": false' present
-  check "extension setting preserved"    '"windowColors.theme": "dark"' present
+  check "extension setting preserved"    '"windowColors.theme": "light"' present
   check "managed colours removed"        '"activityBar.background"' absent
   check "emptied colour block removed"   'workbench.colorCustomizations' absent
 fi

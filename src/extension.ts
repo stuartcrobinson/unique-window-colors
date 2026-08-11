@@ -11,6 +11,7 @@ import {
   ensureForegroundHeadroom,
   MANAGED_COLOR_KEYS,
   mergePreservedBackgrounds,
+  migrateLegacyGeneratedBarLayout,
   parseBaseColor,
   reconcileColorCustomizations,
 } from './color_model';
@@ -146,18 +147,17 @@ export function deriveThemedColors(
       ? rawColor
       : getColorWithLuminosity(rawColor, ltMin, ltMax);
 
-    // Inactive title bars sit clearly above the dark activity bar while
-    // remaining well below the pastel active title bar in perceived brightness.
-    const inactiveTitleBar = getColorWithLuminosity(rawColor, 0.28, 0.32);
-
-    // Status bar = a few shades lighter than the sidebar
-    const statusBar = sideBar.lightness(sideBar.lightness() + 4);
-
     return withForegroundHeadroom({
       sideBar,
       titleBar,
-      inactiveTitleBar,
-      statusBar,
+      // Losing focus collapses the title bar into the activity bar, making the
+      // inactive window read as one quiet strip of colour instead of another
+      // highlighted surface.
+      inactiveTitleBar: sideBar,
+      // VS Code has no inactive-window status-bar role. Keeping its generated
+      // background equal to the activity bar means all non-active-title bars
+      // share the exact same background and foreground when focus is lost.
+      statusBar: sideBar,
     });
   }
 
@@ -254,6 +254,7 @@ function readWorkspaceBackgrounds(workspaceRoot: string): ColorCustomizations {
 async function applyWindowColors(
   workspaceRoot: string,
   preservedBackgrounds?: ColorCustomizations,
+  migrateGeneratedBarLayout = false,
 ): Promise<void> {
 
   const neverColor = workspace.getConfiguration('windowColors').get<boolean>('neverColorThisWindow') ?? false;
@@ -295,7 +296,13 @@ async function applyWindowColors(
     readWorkspaceBackgrounds(workspaceRoot),
     preservedBackgrounds,
   );
-  const cc = mergePreservedBackgrounds(configuredCc, knownBackgrounds);
+  const restoredCc = mergePreservedBackgrounds(configuredCc, knownBackgrounds);
+  // Backgrounds are normally immutable across activation. The sole exception
+  // is this versioned layout migration: it preserves the activity and active
+  // title anchors, then unifies saved inactive-title and status backgrounds.
+  const cc = migrateGeneratedBarLayout
+    ? migrateLegacyGeneratedBarLayout(restoredCc)
+    : restoredCc;
 
   let derived: DerivedColors;
 
@@ -356,8 +363,8 @@ async function applyWindowColors(
     generatedBackgrounds['statusBar.noFolderBackground'] = statusBarColor.hex();
   }
   const effectiveCc = reconcileColorCustomizations(
-    configuredCc,
-    knownBackgrounds,
+    cc,
+    undefined,
     generatedBackgrounds,
     {
       activityBar: colorActivityBar,
@@ -372,6 +379,9 @@ async function applyWindowColors(
 }
 
 const PRESERVED_BACKGROUNDS_STATE_PREFIX = 'preservedBackgroundsV1';
+// V2 retries workspaces that V1 skipped after trying to reconstruct rounded
+// 1.2.10 colors too narrowly.
+const UNIFIED_BAR_LAYOUT_MIGRATION_PREFIX = 'unifiedBarLayoutV2';
 
 /**
  * Migrate old emoji-prefixed settings (e.g. "windowColors.🌈 Theme") to new
@@ -421,6 +431,9 @@ export function activate(context: ExtensionContext) {
   const workspaceRoot: string = getWorkspaceFolder(workspace.workspaceFolders);
   const workspaceIdentity = workspace.workspaceFolders[0].uri.toString();
   const preservedBackgroundsStateKey = `${PRESERVED_BACKGROUNDS_STATE_PREFIX}:${workspaceIdentity}`;
+  const unifiedBarLayoutStateKey = `${UNIFIED_BAR_LAYOUT_MIGRATION_PREFIX}:${workspaceIdentity}`;
+  let unifiedBarLayoutMigrationPending =
+    !context.globalState.get<boolean>(unifiedBarLayoutStateKey);
 
   const getRememberedBackgrounds = (): ColorCustomizations | undefined =>
     context.globalState.get<ColorCustomizations>(preservedBackgroundsStateKey);
@@ -439,8 +452,18 @@ export function activate(context: ExtensionContext) {
     context.globalState.update(preservedBackgroundsStateKey, undefined);
 
   const applyAndRememberWindowColors = async (): Promise<void> => {
-    await applyWindowColors(workspaceRoot, getRememberedBackgrounds());
+    await applyWindowColors(
+      workspaceRoot,
+      getRememberedBackgrounds(),
+      unifiedBarLayoutMigrationPending,
+    );
     await rememberCurrentBackgrounds();
+    if (unifiedBarLayoutMigrationPending) {
+      // Mark completion only after both the workspace write and preserved
+      // snapshot succeed. A failure remains eligible for a safe retry.
+      await context.globalState.update(unifiedBarLayoutStateKey, true);
+      unifiedBarLayoutMigrationPending = false;
+    }
   };
 
   context.subscriptions.push(new SettingsFileDeleter(workspaceRoot));
@@ -451,24 +474,20 @@ export function activate(context: ExtensionContext) {
   // One-time update notice for users migrating from the old emoji-key versions
   const noticeKey = 'shownUpdateNotice__1_2_9_feb25_4';
   const paletteKey = process.platform === 'darwin' ? 'Cmd+Shift+P' : 'Ctrl+Shift+P';
-  const showUpdateNotice = () => {
-    window.showInformationMessage(
-      `🌈 Window Colors was updated with settings changes. If your colors look wrong, use "Reset Colors" to fix them. You can also hand-pick a color with "Set Base Color". To run these anytime: ${paletteKey} → "Window Colors".`,
-      'Reset Colors',
-      'Set Base Color',
-    ).then(async choice => {
-      if (choice === 'Reset Colors') {
-        await commands.executeCommand('windowColors.resetColors');
-        showUpdateNotice();
-      } else if (choice === 'Set Base Color') {
-        await commands.executeCommand('windowColors.pickBaseColor');
-        showUpdateNotice();
-      }
-    });
-  };
   if (!context.globalState.get<boolean>(noticeKey)) {
     context.globalState.update(noticeKey, true);
-    showUpdateNotice();
+    window.showInformationMessage(
+      `🌈 Window Colors updated this window's saved colors automatically. ` +
+      `To make changes anytime: ${paletteKey} → "Window Colors".`,
+      'Open Settings',
+      'Set Base Color',
+    ).then(choice => {
+      if (choice === 'Open Settings') {
+        commands.executeCommand('windowColors.openSettings');
+      } else if (choice === 'Set Base Color') {
+        commands.executeCommand('windowColors.pickBaseColor');
+      }
+    });
   }
 
   // Re-apply colors when VS Code's color theme changes (matters when Theme is "auto")

@@ -1,7 +1,11 @@
 import { equal, ok } from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import * as Color from 'color';
-import { contrastRatio, foregroundFor, MINIMUM_FOREGROUND_HEADROOM } from '../src/color_model';
+import {
+  contrastRatio,
+  foregroundFor,
+  MINIMUM_FOREGROUND_HEADROOM,
+} from '../src/color_model';
 
 interface NodeModuleLoader {
   _load(
@@ -30,50 +34,37 @@ try {
 const { BASE_COLORS, deriveThemedColors } = extension;
 
 describe('background generation', () => {
-  it('places every light-mode inactive title bar between the activity and active title bars', () => {
+  it('matches every inactive title bar to its activity bar in both themes', () => {
     for (const preset of BASE_COLORS) {
-      const derived = deriveThemedColors(Color(preset.hex), 'light', true);
-      ok(
-        derived.inactiveTitleBar.luminosity() > derived.sideBar.luminosity(),
-        `${preset.name} inactive title should be brighter than its activity bar`,
-      );
-      ok(
-        derived.inactiveTitleBar.luminosity() < derived.titleBar.luminosity(),
-        `${preset.name} inactive title should be darker than its active title`,
-      );
-      ok(
-        derived.inactiveTitleBar.luminosity() >= 0.28 &&
-          derived.inactiveTitleBar.luminosity() <= 0.32,
-        `${preset.name} inactive title should be considerably brighter`,
-      );
+      for (const theme of ['dark', 'light'] as const) {
+        const derived = deriveThemedColors(Color(preset.hex), theme, true);
+        equal(
+          derived.inactiveTitleBar.hex(),
+          derived.sideBar.hex(),
+          `${preset.name} ${theme}`,
+        );
+        equal(
+          derived.statusBar.hex(),
+          derived.sideBar.hex(),
+          `${preset.name} ${theme} status bar`,
+        );
+        equal(
+          foregroundFor(derived.inactiveTitleBar.hex()),
+          foregroundFor(derived.sideBar.hex()),
+          `${preset.name} ${theme} inactive title foreground`,
+        );
+        equal(
+          foregroundFor(derived.statusBar.hex()),
+          foregroundFor(derived.sideBar.hex()),
+          `${preset.name} ${theme} status foreground`,
+        );
 
-      const background = derived.inactiveTitleBar.hex();
-      const foreground = foregroundFor(background);
-      ok(
-        contrastRatio(background, foreground) >= 6.5,
-        `${preset.name} inactive title pair should comfortably clear WCAG AA`,
-      );
-    }
-  });
-
-  it('keeps the inactive title bar aligned with the activity bar in dark mode', () => {
-    for (const preset of BASE_COLORS) {
-      const derived = deriveThemedColors(Color(preset.hex), 'dark', true);
-      equal(derived.inactiveTitleBar.hex(), derived.sideBar.hex(), preset.name);
-      // The active title bar keeps its lift above the activity bar. This is
-      // asserted as an ordering rather than as an exact `lighten(0.5)` result,
-      // because a bar may afterwards be nudged out of the low-contrast dead
-      // zone and no longer equal that formula exactly.
-      ok(
-        derived.titleBar.luminosity() > derived.sideBar.luminosity(),
-        `${preset.name} active title should sit above its activity bar`,
-      );
-
-      const foreground = foregroundFor(derived.titleBar.hex());
-      ok(
-        contrastRatio(derived.titleBar.hex(), foreground) >= 4.5,
-        `${preset.name} active title pair should clear WCAG AA`,
-      );
+        const foreground = foregroundFor(derived.titleBar.hex());
+        ok(
+          contrastRatio(derived.titleBar.hex(), foreground) >= 4.5,
+          `${preset.name} ${theme} active title pair should clear WCAG AA`,
+        );
+      }
     }
   });
 });

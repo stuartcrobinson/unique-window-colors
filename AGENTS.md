@@ -23,7 +23,10 @@ background generation for new workspaces.
 Preserve these invariants:
 
 - Existing background strings are authoritative and must not be replaced on
-  activation or upgrade, even when they are absent from `BASE_COLORS`.
+  routine activation or upgrade, even when they are absent from `BASE_COLORS`.
+  The only exception is an explicit versioned layout migration. It may replace
+  inactive-title and status backgrounds with the authoritative activity
+  background, but must never replace the activity or active-title anchors.
 - Foregrounds are derived from the exact background role where they are used.
 - Every foreground generated for an opaque background must clear WCAG AA
   contrast (4.5:1). Preserve the current foreground for translucent backgrounds.
@@ -76,6 +79,10 @@ error there takes down the whole extension rather than one feature. The
 `scripts/smoke_extension_host.sh` is the only check that runs the extension in a
 real VS Code; unit tests stub the `vscode` module, so activation and shutdown
 cleanup are invisible to them. Run it before any release.
+
+Its fixture contains a complete 1.2.10 light-mode palette. The activation half
+must prove that inactive/status colors migrate automatically without a Reset
+command, while the shutdown half proves cleanup still preserves user content.
 
 Three environment variables and one path-length limit make it fail in ways that
 look like the extension is broken. The script header documents each one and the

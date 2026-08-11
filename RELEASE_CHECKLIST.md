@@ -2,13 +2,15 @@
 
 ## Purpose
 
-Publish the foreground-contrast fix without changing existing workspace
-backgrounds. This checklist owns release mechanics only; color behavior is owned
-by `src/color_model.ts` and its tests.
+Publish the foreground-contrast and unified inactive-bar fixes while preserving
+custom workspace backgrounds. This checklist owns release mechanics only; color
+behavior is owned by `src/color_model.ts` and its tests.
 
 ## Release invariants
 
-- Existing background strings remain byte-for-byte unchanged during upgrade.
+- Existing activity-bar and active-title strings remain byte-for-byte unchanged
+  during upgrade. Saved inactive-title and status values migrate automatically
+  to the activity-bar background for opaque workspaces.
 - Every foreground generated for an opaque background clears WCAG AA (4.5:1)
   against that exact background; translucent backgrounds retain their existing
   foreground.
@@ -35,9 +37,9 @@ by `src/color_model.ts` and its tests.
 - [ ] Install the VSIX into an isolated VS Code profile and run an automated
       extension-host migration test before any registry write:
       `scripts/smoke_extension_host.sh [path/to/extension.vsix]`. It opens a real
-      window against a deliberately awkward settings.json, then closes it
-      cleanly to exercise shutdown cleanup. Unit tests stub the `vscode` module
-      and cannot cover either path.
+      window against a deliberately awkward 1.2.10 settings.json, proves the bar
+      layout migrates without Reset, then closes it cleanly to exercise shutdown
+      cleanup. Unit tests stub the `vscode` module and cannot cover either path.
 - [ ] Confirm the canonical publisher/namespace is `stuart` in both registries.
 - [ ] Keep the duplicate `stuartcrobinson` Open VSX namespace cleanup separate
       from the release itself.

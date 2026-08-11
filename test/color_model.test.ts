@@ -9,6 +9,7 @@ import {
   foregroundFor,
   improveForegrounds,
   mergePreservedBackgrounds,
+  migrateLegacyGeneratedBarLayout,
   parseBaseColor,
   reconcileColorCustomizations,
 } from '../src/color_model';
@@ -119,7 +120,11 @@ describe('improveForegrounds', () => {
     // and the two activity-bar roles stay in step with each other.
     ok(Color(improved['activityBar.foreground'] as string).luminosity() > 0.5);
     equal(improved['activityBar.inactiveForeground'], improved['activityBar.foreground']);
-    ok(Color(improved['titleBar.inactiveForeground'] as string).luminosity() > 0.5);
+    ok(
+      Color(improved['titleBar.inactiveForeground'] as string).luminosity()
+        > Color(original['titleBar.inactiveBackground']).luminosity(),
+      'inactive title foreground should remain lighter than its dark background',
+    );
 
     for (const [backgroundKey, foregroundKeys] of BACKGROUND_FOREGROUND_PAIRS) {
       const background = improved[backgroundKey];
@@ -135,6 +140,19 @@ describe('improveForegrounds', () => {
         );
       }
     }
+  });
+
+  it('gives bars with the same background exactly the same foreground', () => {
+    const background = '#411F4F';
+    const improved = improveForegrounds({
+      'activityBar.background': background,
+      'titleBar.inactiveBackground': background,
+      'statusBar.background': background,
+    });
+
+    equal(improved['titleBar.inactiveForeground'], improved['activityBar.foreground']);
+    equal(improved['statusBar.foreground'], improved['activityBar.foreground']);
+    ok(contrastRatio(background, improved['activityBar.foreground'] as string) >= 4.5);
   });
 
   it('leaves an existing foreground alone when its background is not parseable', () => {
@@ -203,6 +221,88 @@ describe('background persistence', () => {
     );
 
     deepStrictEqual(mergePreservedBackgrounds(current, generated), current);
+  });
+});
+
+describe('legacy generated bar-layout migration', () => {
+  it('unifies the real 1.2.10 Blood palette despite saved-color rounding', () => {
+    const migrated = migrateLegacyGeneratedBarLayout({
+      'activityBar.background': '#610606',
+      'titleBar.activeBackground': '#F89C9C',
+      'titleBar.inactiveBackground': '#F56767',
+      'statusBar.background': '#740808',
+      'statusBar.debuggingBackground': '#740808',
+      'statusBar.noFolderBackground': '#740808',
+    });
+
+    equal(migrated['activityBar.background'], '#610606');
+    equal(migrated['titleBar.activeBackground'], '#F89C9C');
+    equal(migrated['titleBar.inactiveBackground'], '#610606');
+    equal(migrated['statusBar.background'], '#610606');
+    equal(migrated['statusBar.debuggingBackground'], '#610606');
+    equal(migrated['statusBar.noFolderBackground'], '#610606');
+  });
+
+  it('automatically unifies a complete 1.2.10 light-mode layout', () => {
+    const current = {
+      'activityBar.background': '#411F4F',
+      'titleBar.activeBackground': '#D6B5E3',
+      'titleBar.inactiveBackground': '#B57DCC',
+      'statusBar.background': '#4D255E',
+      'statusBar.debuggingBackground': '#4D255E',
+      'statusBar.noFolderBackground': '#4D255E',
+      'editor.background': '#123456',
+    };
+
+    const migrated = migrateLegacyGeneratedBarLayout(current);
+
+    equal(migrated['activityBar.background'], '#411F4F');
+    equal(migrated['titleBar.activeBackground'], '#D6B5E3');
+    equal(migrated['titleBar.inactiveBackground'], '#411F4F');
+    equal(migrated['statusBar.background'], '#411F4F');
+    equal(migrated['statusBar.debuggingBackground'], '#411F4F');
+    equal(migrated['statusBar.noFolderBackground'], '#411F4F');
+    equal(migrated['editor.background'], '#123456');
+    // The migration must be a pure transformation: callers compare old and new
+    // snapshots before deciding whether to write workspace settings.
+    equal(current['titleBar.inactiveBackground'], '#B57DCC');
+  });
+
+  it('unifies old values when the workspace has an explicit base color', () => {
+    const migrated = migrateLegacyGeneratedBarLayout({
+      'activityBar.background': '#411F4F',
+      'titleBar.inactiveBackground': '#B47CCC',
+      'statusBar.background': '#4D255E',
+    });
+
+    equal(migrated['titleBar.inactiveBackground'], '#411F4F');
+    equal(migrated['statusBar.background'], '#411F4F');
+  });
+
+  it('uses the activity background as the anchor for every saved inactive role', () => {
+    const migrated = migrateLegacyGeneratedBarLayout({
+      'activityBar.background': '#411F4F',
+      'titleBar.inactiveBackground': '#123456',
+      'statusBar.background': '#4D255E',
+      'statusBar.debuggingBackground': '#ABCDEF',
+      'statusBar.noFolderBackground': '#4D255E',
+    });
+
+    equal(migrated['titleBar.inactiveBackground'], '#411F4F');
+    equal(migrated['statusBar.background'], '#411F4F');
+    equal(migrated['statusBar.debuggingBackground'], '#411F4F');
+    equal(migrated['statusBar.noFolderBackground'], '#411F4F');
+  });
+
+  it('does not guess when the authoritative activity background is translucent or invalid', () => {
+    for (const activityBackground of ['#411F4F80', 'not-a-color']) {
+      const current = {
+        'activityBar.background': activityBackground,
+        'titleBar.inactiveBackground': '#B57DCC',
+        'statusBar.background': '#4D255E',
+      };
+      deepStrictEqual(migrateLegacyGeneratedBarLayout(current), current);
+    }
   });
 });
 

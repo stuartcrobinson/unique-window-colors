@@ -202,6 +202,58 @@ export function mergePreservedBackgrounds(
   return merged;
 }
 
+const UNIFIED_INACTIVE_BACKGROUND_KEYS = [
+  'titleBar.inactiveBackground',
+  'statusBar.background',
+  'statusBar.debuggingBackground',
+  'statusBar.noFolderBackground',
+] as const;
+
+/**
+ * Upgrade an existing workspace to the unified inactive-bar layout.
+ *
+ * The activity background remains the authoritative anchor. This versioned
+ * migration intentionally replaces the extension-managed inactive-title and
+ * status backgrounds so the layout guarantee applies to every existing opaque
+ * workspace, not only palettes whose historical floating-point calculations
+ * can be reconstructed exactly. The active title background is never changed.
+ * Invalid and translucent anchors are left alone because their final rendered
+ * foreground cannot be determined safely.
+ *
+ * The returned object is a copy. Activation can compare it with the current
+ * snapshot and perform one settings update without mutating its source data.
+ */
+export function migrateLegacyGeneratedBarLayout(
+  current: ColorCustomizations,
+): ColorCustomizations {
+  const migrated = { ...current };
+  const activityBackground = current['activityBar.background'];
+  if (!activityBackground) {
+    return migrated;
+  }
+
+  let activityColor: Color;
+  try {
+    activityColor = Color(activityBackground);
+  } catch {
+    return migrated;
+  }
+
+  if (activityColor.alpha() < 1) {
+    return migrated;
+  }
+
+  for (const key of UNIFIED_INACTIVE_BACKGROUND_KEYS) {
+    // Missing roles are still filled by normal generation according to the
+    // user's enabled bar settings. This migration only replaces saved roles.
+    if (current[key] !== undefined) {
+      migrated[key] = activityBackground;
+    }
+  }
+
+  return migrated;
+}
+
 /** Apply the complete managed-color policy as one deterministic transformation. */
 export function reconcileColorCustomizations(
   current: ColorCustomizations,

@@ -16,6 +16,21 @@ export const BACKGROUND_FOREGROUND_PAIRS: ReadonlyArray<readonly [string, readon
   ['statusBar.background', ['statusBar.foreground']],
   ['statusBar.debuggingBackground', ['statusBar.debuggingForeground']],
   ['statusBar.noFolderBackground', ['statusBar.noFolderForeground']],
+  // VS Code draws the window title inside the command center. Its stylesheet
+  // only ever reads --vscode-commandCenter-foreground: it registers
+  // commandCenter.inactiveForeground but no CSS rule uses it, so the title text
+  // keeps the ACTIVE colour after a window loses focus. With a light-mode
+  // palette that leaves black text on the dark inactive bar at 1.41:1.
+  //
+  // One shared foreground cannot be legible on both a pale active bar and a
+  // dark inactive one — no sRGB colour reaches even 3:1 against both — so the
+  // command center is given its own background and reads as a self-contained
+  // chip in either state.
+  ['commandCenter.background', [
+    'commandCenter.foreground',
+    'commandCenter.activeForeground',
+    'commandCenter.inactiveForeground',
+  ]],
 ];
 
 export const MANAGED_COLOR_KEYS: readonly string[] = BACKGROUND_FOREGROUND_PAIRS.reduce<string[]>(
@@ -162,7 +177,18 @@ export function foregroundFor(background: string): string {
  */
 export const INACTIVE_TITLE_BAR_OPACITY = 0.6;
 
-const INACTIVE_TITLE_FOREGROUND_KEY = 'titleBar.inactiveForeground';
+/**
+ * Foreground roles that sit inside the title bar and are therefore subject to
+ * the dimming above. The command center roles are included because the chip
+ * lives in the title bar, so its text is dimmed along with everything else.
+ */
+const DIMMED_WITH_INACTIVE_TITLE_BAR: ReadonlySet<string> = new Set([
+  'titleBar.inactiveForeground',
+  'commandCenter.foreground',
+  'commandCenter.activeForeground',
+  'commandCenter.inactiveForeground',
+]);
+
 const CHANNEL_MAX = 255;
 
 /**
@@ -199,9 +225,10 @@ export function improveForegrounds(customizations: ColorCustomizations): ColorCu
     try {
       const foreground = foregroundFor(background);
       for (const foregroundKey of foregroundKeys) {
-        // The inactive title bar is the one surface VS Code dims, so it needs a
-        // stronger value to end up looking like the bars beside it.
-        improved[foregroundKey] = foregroundKey === INACTIVE_TITLE_FOREGROUND_KEY
+        // Roles inside the title bar are dimmed by VS Code when the window
+        // loses focus, so they need a stronger value to end up looking like the
+        // bars beside them.
+        improved[foregroundKey] = DIMMED_WITH_INACTIVE_TITLE_BAR.has(foregroundKey)
           ? compensateForInactiveTitleOpacity(background, foreground)
           : foreground;
       }

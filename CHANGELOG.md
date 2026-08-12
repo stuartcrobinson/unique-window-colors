@@ -5,6 +5,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.2.11] - 2026-08-08
 
+- Keep the window title readable while a window is unfocused. VS Code draws it
+  inside the command center, which paints its text with `commandCenter.foreground`
+  whether or not the window has focus, so the title kept its active colour after
+  the bar turned dark and became unreadable. The command center is now given its
+  own background and matching foregrounds, which stay legible in both states.
 - Compensate for the opacity VS Code forces on inactive title bars. Its
   stylesheet dims their contents to 60%, so a foreground written to match the
   other bars rendered at roughly half their strength — on a dark blue bar,

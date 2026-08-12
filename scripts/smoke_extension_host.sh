@@ -159,6 +159,12 @@ check_equal_colors "undimmed inactive bar foregrounds exactly match" \
 # lands in the same place only after that dimming.
 check "inactive title foreground compensated for VS Code dimming" \
   '"titleBar.inactiveForeground": "#FFFFFF"' present
+# VS Code paints the window title from commandCenter.foreground in BOTH focus
+# states — commandCenter.inactiveForeground is registered but no CSS rule reads
+# it — so the chip needs its own background or the title goes unreadable once
+# the bar turns dark.
+check "command center given its own background" '"commandCenter.background"' present
+check "command center foreground set"           '"commandCenter.foreground"' present
 
 echo "==> closing the window cleanly (triggers dispose)"
 MAIN=$(ps -eo pid,command | grep -F "$BASE/data" | grep -v grep \

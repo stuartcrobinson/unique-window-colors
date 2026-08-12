@@ -356,6 +356,10 @@ async function applyWindowColors(
   if (!doRemoveColors && colorTitleBar) {
     generatedBackgrounds['titleBar.activeBackground'] = titleBarColor.hex();
     generatedBackgrounds['titleBar.inactiveBackground'] = inactiveTitleBarColor.hex();
+    // The command center sits in the title bar and always paints its text with
+    // commandCenter.foreground, even after the window loses focus, so it needs
+    // its own background to stay legible in both states.
+    generatedBackgrounds['commandCenter.background'] = inactiveTitleBarColor.hex();
   }
   if (!doRemoveColors && colorStatusBar) {
     generatedBackgrounds['statusBar.background'] = statusBarColor.hex();
@@ -654,6 +658,7 @@ export function activate(context: ExtensionContext) {
       if (currentColorTitleBar) {
         newCc['titleBar.activeBackground'] = titleBar.hex();
         newCc['titleBar.inactiveBackground'] = inactiveTitleBar.hex();
+        newCc['commandCenter.background'] = inactiveTitleBar.hex();
       }
       if (currentColorStatusBar) {
         newCc['statusBar.background'] = statusBar.hex();

@@ -436,3 +436,41 @@ describe('inactive title bar opacity compensation', () => {
     ok(contrastRatio(light, rendered) >= 4.5, `light bar rendered ${rendered} must stay legible`);
   });
 });
+
+describe('command center', () => {
+  // VS Code renders the window title inside the command center, whose CSS only
+  // ever reads --vscode-commandCenter-foreground. It registers
+  // commandCenter.inactiveForeground but no CSS rule uses it, so the title text
+  // keeps the ACTIVE colour after the window loses focus. With a light-mode
+  // palette that is black text left sitting on the dark inactive bar at 1.41:1.
+  // Giving the command center its own background makes it legible in both
+  // states, which one shared foreground alone cannot do.
+  const SIDEBAR = '#05284A';
+  const ACTIVE_TITLE = '#77B8F7';
+
+  it('gives the command center a background so it does not rely on the bar', () => {
+    const improved = improveForegrounds({
+      'activityBar.background': SIDEBAR,
+      'titleBar.activeBackground': ACTIVE_TITLE,
+      'titleBar.inactiveBackground': SIDEBAR,
+      'commandCenter.background': SIDEBAR,
+    });
+    ok(improved['commandCenter.foreground'], 'a foreground must be derived for the chip');
+    equal(improved['commandCenter.activeForeground'], improved['commandCenter.foreground']);
+  });
+
+  it('stays legible once VS Code dims the inactive title bar', () => {
+    const improved = improveForegrounds({ 'commandCenter.background': SIDEBAR });
+    const chip = Color(SIDEBAR).mix(Color(SIDEBAR), INACTIVE_TITLE_BAR_OPACITY).hex();
+    const text = Color(SIDEBAR)
+      .mix(Color(improved['commandCenter.foreground'] as string), INACTIVE_TITLE_BAR_OPACITY)
+      .hex();
+    const ratio = contrastRatio(chip, text);
+    ok(ratio >= 6, `dimmed command center is only ${ratio.toFixed(2)}:1`);
+  });
+
+  it('is legible while the window is focused too', () => {
+    const improved = improveForegrounds({ 'commandCenter.background': SIDEBAR });
+    ok(contrastRatio(SIDEBAR, improved['commandCenter.foreground'] as string) >= 4.5);
+  });
+});

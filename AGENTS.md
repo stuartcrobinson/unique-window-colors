@@ -39,6 +39,13 @@ Preserve these invariants:
   ships `.part.titlebar.inactive > * { opacity: .6 }`, which is not themeable,
   so an identical hex renders at roughly half the contrast of the undimmed
   bars. Judge that role by its composited result, never by the hex.
+- The command center needs `commandCenter.background` set, and its foregrounds
+  managed. VS Code paints the window title from `commandCenter.foreground` in
+  both focus states: `commandCenter.inactiveForeground` is registered but no CSS
+  rule reads it. Without its own background the title keeps the active colour on
+  the dark inactive bar, at 1.41:1 for a light-mode palette. No single sRGB
+  colour clears even 3:1 against both a pale active bar and a dark inactive one,
+  so the chip has to carry its own surface.
 - Keep validation in TypeScript against the shipping implementation; do not add
   a parallel palette engine in another language.
 

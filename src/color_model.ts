@@ -213,6 +213,53 @@ export function compensateForInactiveTitleOpacity(background: string, target: st
   return Color.rgb(written).hex();
 }
 
+/** Contrast the unfocused title bar must still offer once VS Code dims it. */
+const INACTIVE_TITLE_LEGIBILITY_FLOOR = 4.5;
+const INACTIVE_SHIFT_STEP = 0.01;
+/** Where the shift starts: enough to read as a change, small enough to keep the hue. */
+const PREFERRED_INACTIVE_SHIFT_STEPS = 25;
+const MAX_INACTIVE_SHIFT_STEPS = 60;
+
+/**
+ * Derive the unfocused title bar from the focused one.
+ *
+ * It must stay on the same side of the luminance midpoint as the focused bar.
+ * VS Code paints the window title from `commandCenter.foreground` in both focus
+ * states — `commandCenter.inactiveForeground` is registered but no CSS rule
+ * reads it — so one colour has to serve both bars. Two bars on opposite sides
+ * demand opposite neutrals, and then no colour can: that is how a light-mode
+ * window ended up with black title text on a dark bar at 1.41:1.
+ *
+ * So the bar is moved *away* from its own text colour, never past it, as far as
+ * legibility allows once the 60% dimming is applied. That keeps a clear focus
+ * cue while leaving the shared foreground usable.
+ */
+export function deriveInactiveTitleBar(activeTitleBar: Color): Color {
+  const shared = foregroundFor(activeTitleBar.hex());
+  const textIsLight = Color(shared).luminosity() > 0.5;
+
+  const shift = (amount: number): Color =>
+    textIsLight ? activeTitleBar.darken(amount) : activeTitleBar.lighten(amount);
+  const legibilityOf = (bar: Color): number =>
+    contrastRatio(bar.hex(), Color(bar.hex()).mix(Color(shared), INACTIVE_TITLE_BAR_OPACITY).hex());
+
+  // Start from a moderate shift and grow it only while the bar is still hard to
+  // read. Taking the largest legible shift instead would drive most bars to
+  // plain white or black, throwing away the very thing this extension exists to
+  // provide: a colour that identifies the window.
+  for (let step = PREFERRED_INACTIVE_SHIFT_STEPS; step <= MAX_INACTIVE_SHIFT_STEPS; step++) {
+    const candidate = shift(step * INACTIVE_SHIFT_STEP);
+    if (legibilityOf(candidate) >= INACTIVE_TITLE_LEGIBILITY_FLOOR) {
+      return candidate;
+    }
+  }
+
+  // Very bright bars — the yellows above all — cannot reach the floor at any
+  // shift, because dark text dimmed to 60% on a light bar is inherently low
+  // contrast. Take the largest shift, which reads best of the options.
+  return shift(MAX_INACTIVE_SHIFT_STEPS * INACTIVE_SHIFT_STEP);
+}
+
 /** Return a copy with foregrounds synchronized to their actual backgrounds. */
 export function improveForegrounds(customizations: ColorCustomizations): ColorCustomizations {
   const improved = { ...customizations };

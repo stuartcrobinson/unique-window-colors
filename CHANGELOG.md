@@ -5,6 +5,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.2.11] - 2026-08-08
 
+- Derive the unfocused title bar from the focused one instead of matching the
+  activity bar, keeping both on the same side of the luminance midpoint. VS Code
+  paints the window title with a single colour whether or not a window has
+  focus, so a title bar that crossed that midpoint left the title unreadable —
+  on a light-mode palette it reached 1.41:1. The unfocused bar still shifts
+  clearly, and keeps its hue rather than washing out to white or black.
 - Keep the window title readable while a window is unfocused. VS Code draws it
   inside the command center, which paints its text with `commandCenter.foreground`
   whether or not the window has focus, so the title kept its active colour after

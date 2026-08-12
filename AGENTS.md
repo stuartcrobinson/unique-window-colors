@@ -39,6 +39,13 @@ Preserve these invariants:
   ships `.part.titlebar.inactive > * { opacity: .6 }`, which is not themeable,
   so an identical hex renders at roughly half the contrast of the undimmed
   bars. Judge that role by its composited result, never by the hex.
+- The unfocused title bar is derived from the FOCUSED title bar, never from the
+  activity bar, and must stay on the same side of the luminance midpoint as it.
+  VS Code paints the window title with one colour in both focus states, so two
+  bars on opposite sides demand opposite neutrals and neither is readable. An
+  earlier version matched the activity bar exactly and produced black title text
+  on a dark bar at 1.41:1. The shift starts moderate so the bar keeps its hue;
+  taking the largest legible shift drives most bars to plain white or black.
 - The command center needs `commandCenter.background` set, and its foregrounds
   managed. VS Code paints the window title from `commandCenter.foreground` in
   both focus states: `commandCenter.inactiveForeground` is registered but no CSS

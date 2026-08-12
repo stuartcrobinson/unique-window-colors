@@ -1,9 +1,10 @@
-import { equal, ok } from 'node:assert/strict';
+import { equal, notEqual, ok } from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import * as Color from 'color';
 import {
   contrastRatio,
   foregroundFor,
+  INACTIVE_TITLE_BAR_OPACITY,
   MINIMUM_FOREGROUND_HEADROOM,
 } from '../src/color_model';
 
@@ -34,24 +35,18 @@ try {
 const { BASE_COLORS, deriveThemedColors } = extension;
 
 describe('background generation', () => {
-  it('matches every inactive title bar to its activity bar in both themes', () => {
+  it('keeps the status bar matched to the activity bar in both themes', () => {
+    // The inactive title bar deliberately does NOT join them. It used to, but
+    // VS Code paints the window title with one colour in both focus states, so
+    // a title bar that jumps to the activity bar's side of the luminance
+    // midpoint leaves that text illegible. See deriveInactiveTitleBar.
     for (const preset of BASE_COLORS) {
       for (const theme of ['dark', 'light'] as const) {
         const derived = deriveThemedColors(Color(preset.hex), theme, true);
         equal(
-          derived.inactiveTitleBar.hex(),
-          derived.sideBar.hex(),
-          `${preset.name} ${theme}`,
-        );
-        equal(
           derived.statusBar.hex(),
           derived.sideBar.hex(),
           `${preset.name} ${theme} status bar`,
-        );
-        equal(
-          foregroundFor(derived.inactiveTitleBar.hex()),
-          foregroundFor(derived.sideBar.hex()),
-          `${preset.name} ${theme} inactive title foreground`,
         );
         equal(
           foregroundFor(derived.statusBar.hex()),
@@ -102,5 +97,72 @@ describe('generated bars leave room for a readable foreground', () => {
     const derived = deriveThemedColors(Color('#031a30'), 'dark');
     equal(derived.sideBar.hex(), deriveThemedColors(Color('#031a30'), 'dark').sideBar.hex());
     ok(contrastRatio(derived.sideBar.hex(), '#FFFFFF') > MINIMUM_FOREGROUND_HEADROOM);
+  });
+});
+
+describe('title bar states share one usable foreground', () => {
+  // VS Code paints the window title from commandCenter.foreground in BOTH focus
+  // states — commandCenter.inactiveForeground is registered but no CSS rule
+  // reads it — so a single colour has to work on the focused and the unfocused
+  // title bar. When those two sit on opposite sides of the luminance midpoint
+  // they demand opposite neutrals and no colour can serve both. That is how a
+  // light-mode window ended up with black title text on a dark bar at 1.41:1.
+  const dimmed = (background: string, foreground: string): string =>
+    Color(background).mix(Color(foreground), INACTIVE_TITLE_BAR_OPACITY).hex();
+
+  it('keeps both title bar states on the same side of the midpoint', () => {
+    for (const preset of BASE_COLORS) {
+      for (const theme of ['dark', 'light'] as const) {
+        const derived = deriveThemedColors(Color(preset.hex), theme);
+        const activeNeutral = Color(foregroundFor(derived.titleBar.hex())).luminosity() > 0.5;
+        const inactiveNeutral = Color(foregroundFor(derived.inactiveTitleBar.hex())).luminosity() > 0.5;
+        equal(
+          activeNeutral,
+          inactiveNeutral,
+          `${preset.name} ${theme}: focused bar ${derived.titleBar.hex()} and unfocused ` +
+          `${derived.inactiveTitleBar.hex()} need opposite text colours`,
+        );
+      }
+    }
+  });
+
+  it('keeps the shared foreground legible on both bars, after dimming', () => {
+    for (const preset of BASE_COLORS) {
+      for (const theme of ['dark', 'light'] as const) {
+        const derived = deriveThemedColors(Color(preset.hex), theme);
+        const shared = foregroundFor(derived.titleBar.hex());
+
+        // Focused: the title bar is not dimmed.
+        const focused = contrastRatio(derived.titleBar.hex(), shared);
+        ok(focused >= 4.5, `${preset.name} ${theme} focused only ${focused.toFixed(2)}:1`);
+
+        // Unfocused: VS Code composites the text at 60% over the bar.
+        // Floor is 4.0 rather than WCAG AA's 4.5 because two presets cannot
+        // physically reach it: Yellow and Gray in light mode have bars so bright
+        // that dark text dimmed to 60% is inherently low contrast, whatever
+        // shade the bar takes. Both still land far above the 1.07:1 this
+        // arrangement produced before, and Gray is never auto-assigned — the
+        // achromatics are only reachable through Set Base Color.
+        const unfocusedBar = derived.inactiveTitleBar.hex();
+        const unfocused = contrastRatio(unfocusedBar, dimmed(unfocusedBar, shared));
+        ok(
+          unfocused >= 4,
+          `${preset.name} ${theme} unfocused only ${unfocused.toFixed(2)}:1 on ${unfocusedBar}`,
+        );
+      }
+    }
+  });
+
+  it('still darkens or lightens the bar enough to signal focus loss', () => {
+    for (const preset of BASE_COLORS) {
+      for (const theme of ['dark', 'light'] as const) {
+        const derived = deriveThemedColors(Color(preset.hex), theme);
+        notEqual(
+          derived.inactiveTitleBar.hex(),
+          derived.titleBar.hex(),
+          `${preset.name} ${theme}: unfocused bar must not be identical to the focused one`,
+        );
+      }
+    }
   });
 });

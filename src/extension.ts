@@ -8,6 +8,7 @@ import {
   extractBackgrounds,
   getColorWithLuminosity,
   improveForegrounds,
+  deriveInactiveTitleBar,
   ensureForegroundHeadroom,
   MANAGED_COLOR_KEYS,
   mergePreservedBackgrounds,
@@ -126,10 +127,13 @@ export function deriveThemedColors(
     const sideBar = respectExtremes && rawColor.luminosity() < dkMin
       ? rawColor
       : getColorWithLuminosity(rawColor, dkMin, dkMax);
+    const darkTitleBar = sideBar.lighten(0.5);
     return withForegroundHeadroom({
       sideBar,
-      titleBar: sideBar.lighten(0.5),
-      inactiveTitleBar: sideBar,
+      titleBar: darkTitleBar,
+      // Derived from the focused bar, not from the activity bar: both title bar
+      // states must share one usable text colour. See deriveInactiveTitleBar.
+      inactiveTitleBar: deriveInactiveTitleBar(darkTitleBar),
       statusBar: sideBar,
     });
   }
@@ -150,13 +154,12 @@ export function deriveThemedColors(
     return withForegroundHeadroom({
       sideBar,
       titleBar,
-      // Losing focus collapses the title bar into the activity bar, making the
-      // inactive window read as one quiet strip of colour instead of another
-      // highlighted surface.
-      inactiveTitleBar: sideBar,
-      // VS Code has no inactive-window status-bar role. Keeping its generated
-      // background equal to the activity bar means all non-active-title bars
-      // share the exact same background and foreground when focus is lost.
+      // Cannot simply collapse into the activity bar: in light mode that bar is
+      // dark while the focused title bar is pale, and the command center then
+      // has no text colour that works in both states. See deriveInactiveTitleBar.
+      inactiveTitleBar: deriveInactiveTitleBar(titleBar),
+      // VS Code has no inactive-window status-bar role, so this keeps matching
+      // the activity bar.
       statusBar: sideBar,
     });
   }
@@ -166,7 +169,7 @@ export function deriveThemedColors(
   return withForegroundHeadroom({
     sideBar: rawColor,
     titleBar,
-    inactiveTitleBar: rawColor,
+    inactiveTitleBar: deriveInactiveTitleBar(titleBar),
     statusBar: rawColor,
   });
 }

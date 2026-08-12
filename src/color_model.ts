@@ -151,6 +151,42 @@ export function foregroundFor(background: string): string {
   return result.hex();
 }
 
+/**
+ * Opacity VS Code forces onto the contents of an inactive title bar.
+ *
+ * Its stylesheet contains `.part.titlebar.inactive > * { opacity: .6 }`, which
+ * is not themeable. Whatever colour is written for `titleBar.inactiveForeground`
+ * is therefore composited over its own background before anyone sees it, so
+ * writing the same hex as the undimmed bars renders visibly fainter than them
+ * rather than identical — 10.05:1 becomes 4.54:1 on a #05284A bar.
+ */
+export const INACTIVE_TITLE_BAR_OPACITY = 0.6;
+
+const INACTIVE_TITLE_FOREGROUND_KEY = 'titleBar.inactiveForeground';
+const CHANNEL_MAX = 255;
+
+/**
+ * Pre-brighten a foreground so that, once VS Code dims it, what lands on screen
+ * is as close to `target` as the sRGB gamut allows.
+ *
+ * Compositing is linear per channel: rendered = opacity*written + (1-opacity)*background.
+ * Solving for the value to write and clamping to the channel range gives the
+ * closest achievable match; an exact one is often out of gamut, in which case
+ * the strongest available colour is used and the bar simply reads a little
+ * quieter than the others.
+ */
+export function compensateForInactiveTitleOpacity(background: string, target: string): string {
+  const backgroundColor = Color(background);
+  const targetColor = Color(target);
+  const written = [0, 1, 2].map(channel => {
+    const base = backgroundColor.rgb().array()[channel];
+    const wanted = targetColor.rgb().array()[channel];
+    const value = (wanted - (1 - INACTIVE_TITLE_BAR_OPACITY) * base) / INACTIVE_TITLE_BAR_OPACITY;
+    return Math.round(Math.min(CHANNEL_MAX, Math.max(0, value)));
+  });
+  return Color.rgb(written).hex();
+}
+
 /** Return a copy with foregrounds synchronized to their actual backgrounds. */
 export function improveForegrounds(customizations: ColorCustomizations): ColorCustomizations {
   const improved = { ...customizations };
@@ -163,7 +199,11 @@ export function improveForegrounds(customizations: ColorCustomizations): ColorCu
     try {
       const foreground = foregroundFor(background);
       for (const foregroundKey of foregroundKeys) {
-        improved[foregroundKey] = foreground;
+        // The inactive title bar is the one surface VS Code dims, so it needs a
+        // stronger value to end up looking like the bars beside it.
+        improved[foregroundKey] = foregroundKey === INACTIVE_TITLE_FOREGROUND_KEY
+          ? compensateForInactiveTitleOpacity(background, foreground)
+          : foreground;
       }
     } catch {
       // Preserve the user's current foreground when a background is not a CSS color.

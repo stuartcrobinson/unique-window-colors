@@ -5,6 +5,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.2.11] - 2026-08-08
 
+- Compensate for the opacity VS Code forces on inactive title bars. Its
+  stylesheet dims their contents to 60%, so a foreground written to match the
+  other bars rendered at roughly half their strength — on a dark blue bar,
+  10.1:1 landed as 4.5:1 and read as unlit. The value written for
+  `titleBar.inactiveForeground` is now raised so that what reaches the screen
+  sits as close to the neighbouring bars as the sRGB range allows.
 - Even out bar contrast within a window. Foregrounds previously used pure white
   or pure black, leaving contrast at the mercy of the background: a dark
   activity bar could glare while a lighter title bar looked washed out. Colors

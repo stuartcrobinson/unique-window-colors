@@ -34,6 +34,11 @@ Preserve these invariants:
   generated backgrounds keep enough headroom to reach it. Always using pure
   black or white left contrast at the mercy of the background, so bars in one
   window ranged from 4.9:1 to 16.7:1 and looked mismatched.
+- `titleBar.inactiveForeground` is written brighter than the value it is meant
+  to look like, and must not be "corrected" to match its neighbours. VS Code
+  ships `.part.titlebar.inactive > * { opacity: .6 }`, which is not themeable,
+  so an identical hex renders at roughly half the contrast of the undimmed
+  bars. Judge that role by its composited result, never by the hex.
 - Keep validation in TypeScript against the shipping implementation; do not add
   a parallel palette engine in another language.
 

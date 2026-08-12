@@ -149,9 +149,16 @@ check "foregrounds generated"             '"activityBar.foreground"' present
 check_equal_colors "inactive bar backgrounds exactly match" \
   activityBar.background titleBar.inactiveBackground statusBar.background \
   statusBar.debuggingBackground statusBar.noFolderBackground
-check_equal_colors "inactive bar foregrounds exactly match" \
-  activityBar.foreground activityBar.inactiveForeground titleBar.inactiveForeground \
+# The undimmed bars share one foreground outright.
+check_equal_colors "undimmed inactive bar foregrounds exactly match" \
+  activityBar.foreground activityBar.inactiveForeground \
   statusBar.foreground statusBar.debuggingForeground statusBar.noFolderForeground
+# The title bar must NOT match them. VS Code applies
+# `.part.titlebar.inactive > * { opacity: .6 }`, so an identical hex renders
+# about half as strong as its neighbours; it carries a brighter value that
+# lands in the same place only after that dimming.
+check "inactive title foreground compensated for VS Code dimming" \
+  '"titleBar.inactiveForeground": "#FFFFFF"' present
 
 echo "==> closing the window cleanly (triggers dispose)"
 MAIN=$(ps -eo pid,command | grep -F "$BASE/data" | grep -v grep \

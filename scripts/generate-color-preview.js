@@ -30,7 +30,12 @@ try {
 }
 
 const { BASE_COLORS, deriveThemedColors } = extension;
-const { contrastRatio, foregroundFor } = colorModel;
+const {
+  compensateForInactiveTitleOpacity,
+  contrastRatio,
+  foregroundFor,
+  INACTIVE_TITLE_BAR_OPACITY,
+} = colorModel;
 
 function escapeHtml(value) {
   return String(value)
@@ -41,18 +46,31 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-function role(label, background, detail) {
-  const foreground = foregroundFor(background);
-  const contrast = contrastRatio(background, foreground).toFixed(2);
+function role(label, background, detail, dimmedByVsCode = false) {
+  // VS Code applies `.part.titlebar.inactive > * { opacity: .6 }`, which is not
+  // themeable. For that one role the value written to settings is deliberately
+  // brighter than the others so it lands in the same place after dimming, so
+  // the swatch must be painted with what actually reaches the screen — showing
+  // the written value there would overstate how visible the bar really is.
+  const written = dimmedByVsCode
+    ? compensateForInactiveTitleOpacity(background, foregroundFor(background))
+    : foregroundFor(background);
+  const rendered = dimmedByVsCode
+    ? Color(background).mix(Color(written), INACTIVE_TITLE_BAR_OPACITY).hex()
+    : written;
+  const contrast = contrastRatio(background, rendered).toFixed(2);
+  const foregroundCell = dimmedByVsCode
+    ? `${escapeHtml(written)} &rarr; ${escapeHtml(rendered)}`
+    : escapeHtml(written);
   return `
           <div class="role">
-            <div class="swatch" style="--role-bg: ${escapeHtml(background)}; --role-fg: ${escapeHtml(foreground)}">
+            <div class="swatch" style="--role-bg: ${escapeHtml(background)}; --role-fg: ${escapeHtml(rendered)}">
               <span class="sample-icon" aria-hidden="true">◆</span>
               <span>${escapeHtml(label)}</span>
             </div>
             <dl>
               <div><dt>BG</dt><dd>${escapeHtml(background)}</dd></div>
-              <div><dt>FG</dt><dd>${escapeHtml(foreground)}</dd></div>
+              <div><dt>FG</dt><dd>${foregroundCell}</dd></div>
               <div><dt>AA</dt><dd>${contrast}:1</dd></div>
             </dl>
             <p>${escapeHtml(detail)}</p>
@@ -79,7 +97,7 @@ function presetCard(preset, mode) {
         <div class="roles">
 ${role('Activity bar', activity, 'activityBar foreground + inactiveForeground')}
 ${role('Title bar · active', titleActive, 'titleBar.activeForeground')}
-${role('Title bar · inactive', titleInactive, 'Matches the activity and status bars exactly')}
+${role('Title bar · inactive', titleInactive, 'VS Code dims this bar to 60%; the written value is raised to compensate', true)}
 ${role('Status bar', status, 'normal, debugging, and no-folder states')}
         </div>
       </article>`;

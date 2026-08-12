@@ -4,6 +4,7 @@ import * as Color from 'color';
 import {
   BACKGROUND_FOREGROUND_PAIRS,
   contrastRatio,
+  INACTIVE_TITLE_BAR_OPACITY,
   TARGET_FOREGROUND_CONTRAST,
   extractBackgrounds,
   foregroundFor,
@@ -142,7 +143,7 @@ describe('improveForegrounds', () => {
     }
   });
 
-  it('gives bars with the same background exactly the same foreground', () => {
+  it('makes bars with the same background look the same once rendered', () => {
     const background = '#411F4F';
     const improved = improveForegrounds({
       'activityBar.background': background,
@@ -150,9 +151,26 @@ describe('improveForegrounds', () => {
       'statusBar.background': background,
     });
 
-    equal(improved['titleBar.inactiveForeground'], improved['activityBar.foreground']);
+    // Undimmed bars share one value outright.
     equal(improved['statusBar.foreground'], improved['activityBar.foreground']);
     ok(contrastRatio(background, improved['activityBar.foreground'] as string) >= 4.5);
+
+    // The inactive title bar must NOT share that hex. VS Code dims it to 60%,
+    // so an identical value would render far fainter than its neighbours; it
+    // carries a brighter one that lands in the same place after dimming.
+    const rendered = Color(background)
+      .mix(Color(improved['titleBar.inactiveForeground'] as string), INACTIVE_TITLE_BAR_OPACITY)
+      .hex();
+    const target = contrastRatio(background, improved['activityBar.foreground'] as string);
+    const naive = contrastRatio(
+      background,
+      Color(background).mix(Color(improved['activityBar.foreground'] as string), INACTIVE_TITLE_BAR_OPACITY).hex(),
+    );
+    ok(
+      Math.abs(contrastRatio(background, rendered) - target) < Math.abs(naive - target),
+      'the dimmed title bar should render nearer its neighbours than a copied hex would',
+    );
+    ok(contrastRatio(background, rendered) >= 4.5, 'and must stay legible after dimming');
   });
 
   it('leaves an existing foreground alone when its background is not parseable', () => {
@@ -362,5 +380,59 @@ describe('reconcileColorCustomizations', () => {
       ),
       { 'editor.background': '#123456' },
     );
+  });
+});
+
+describe('inactive title bar opacity compensation', () => {
+  // VS Code hard-codes `.part.titlebar.inactive > * { opacity: .6 }`, so the
+  // colour written for titleBar.inactiveForeground is composited at 60% over
+  // its own background before anyone sees it. Writing the same hex as the
+  // undimmed bars therefore renders far fainter than them, not identical:
+  // #CED5DB on #05284A measures 10.05:1 but lands at 4.54:1 once dimmed.
+  const BACKGROUND = '#05284A';
+  const asRendered = (written: string): string =>
+    Color(BACKGROUND).mix(Color(written), INACTIVE_TITLE_BAR_OPACITY).hex();
+
+  it('writes a brighter value than the undimmed bars so both land alike', () => {
+    const improved = improveForegrounds({
+      'activityBar.background': BACKGROUND,
+      'titleBar.inactiveBackground': BACKGROUND,
+    });
+    const undimmed = improved['activityBar.foreground'] as string;
+    const written = improved['titleBar.inactiveForeground'] as string;
+
+    ok(
+      Color(written).luminosity() > Color(undimmed).luminosity(),
+      `title bar must be written brighter than ${undimmed} to survive dimming, got ${written}`,
+    );
+  });
+
+  it('keeps the rendered inactive title bar legible', () => {
+    const improved = improveForegrounds({ 'titleBar.inactiveBackground': BACKGROUND });
+    const rendered = asRendered(improved['titleBar.inactiveForeground'] as string);
+    const ratio = contrastRatio(BACKGROUND, rendered);
+    ok(ratio >= 6, `rendered ${rendered} is only ${ratio.toFixed(2)}:1; uncompensated was 4.54:1`);
+  });
+
+  it('renders closer to the undimmed bars than writing the same hex would', () => {
+    const improved = improveForegrounds({
+      'activityBar.background': BACKGROUND,
+      'titleBar.inactiveBackground': BACKGROUND,
+    });
+    const target = contrastRatio(BACKGROUND, improved['activityBar.foreground'] as string);
+    const compensated = contrastRatio(BACKGROUND, asRendered(improved['titleBar.inactiveForeground'] as string));
+    const naive = contrastRatio(BACKGROUND, asRendered(improved['activityBar.foreground'] as string));
+    ok(
+      Math.abs(target - compensated) < Math.abs(target - naive),
+      `compensated ${compensated.toFixed(2)} should sit nearer ${target.toFixed(2)} than naive ${naive.toFixed(2)}`,
+    );
+  });
+
+  it('also compensates a light bar, where the foreground is dark', () => {
+    const light = '#F0D8D8';
+    const improved = improveForegrounds({ 'titleBar.inactiveBackground': light });
+    const written = improved['titleBar.inactiveForeground'] as string;
+    const rendered = Color(light).mix(Color(written), INACTIVE_TITLE_BAR_OPACITY).hex();
+    ok(contrastRatio(light, rendered) >= 4.5, `light bar rendered ${rendered} must stay legible`);
   });
 });
